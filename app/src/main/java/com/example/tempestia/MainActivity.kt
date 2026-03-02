@@ -18,6 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.tempestia.ui.home.view.HomeScreen
 import com.example.tempestia.ui.onboarding.view.OnboardingScreen
 import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
 import com.example.tempestia.ui.theme.TempestiaTheme
@@ -69,13 +70,15 @@ class MainActivity : ComponentActivity() {
                         onLocationSelected = { lat, lng ->
                             // TODO: Save location to ViewModel
                             Log.i("TAG", "Location: $lat, $lng")
+
+                            onboardingViewModel.saveLocation(lat, lng)
+
                             showMap = false
                             showOnboarding = false
                             onboardingViewModel.completeOnboarding()
                         }
                     )
-                }
-                else if (showOnboarding) {
+                } else if (showOnboarding) {
                     OnboardingScreen(
                         onFinished = {
                             onboardingViewModel.completeOnboarding()
@@ -86,8 +89,7 @@ class MainActivity : ComponentActivity() {
                             showMap = true
                         }
                     )
-                }
-                else {
+                } else {
                     TempestiaApp()
                 }
             }
@@ -117,10 +119,7 @@ fun TempestiaApp() {
         }
     ) {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            Greeting(
-                name = "Android",
-                modifier = Modifier.padding(innerPadding)
-            )
+            HomeScreen(modifier = Modifier.padding(innerPadding))
         }
     }
 }
@@ -132,19 +131,4 @@ enum class AppDestinations(
     HOME("Home", Icons.Default.Home),
     FAVORITES("Favorites", Icons.Default.Favorite),
     PROFILE("Profile", Icons.Default.AccountBox),
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Composable
-fun GreetingPreview() {
-    TempestiaTheme {
-        Greeting("Android")
-    }
 }
