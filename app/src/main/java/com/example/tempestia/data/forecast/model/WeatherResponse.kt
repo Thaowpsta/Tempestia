@@ -6,5 +6,6 @@ data class WeatherResponse(
     val weather: List<Weather>,
     val main: MainDetails,
     @SerializedName("name")
-    val cityName: String
+    val cityName: String,
+    val wind: Wind,
 )

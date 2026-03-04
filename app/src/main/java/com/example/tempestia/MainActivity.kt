@@ -5,50 +5,41 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.tempestia.ui.home.view.HomeScreen
+import com.example.tempestia.ui.home.HomeScreen
+import com.example.tempestia.ui.navigations.AppDestinations
+import com.example.tempestia.ui.onboarding.view.DarkTempestiaColors
+import com.example.tempestia.ui.onboarding.view.LightTempestiaColors
+import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
+import com.example.tempestia.ui.onboarding.view.MapScreen
 import com.example.tempestia.ui.onboarding.view.OnboardingScreen
 import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
 import com.example.tempestia.ui.theme.TempestiaTheme
-
-//class MainActivity : ComponentActivity() {
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        enableEdgeToEdge()
-//        setContent {
-//            TempestiaTheme {
-//                val onboardingViewModel: OnboardingViewModel = viewModel()
-//                val isOnboardingCompleted by onboardingViewModel.isOnboardingCompleted.collectAsState(initial = null)
-//
-//                if (isOnboardingCompleted == null) {
-//                    Surface(modifier = Modifier.fillMaxSize()) {}
-//                } else {
-//                    if (isOnboardingCompleted == true) {
-//                        TempestiaApp()
-//                    } else {
-//                        OnboardingScreen(
-//                            onFinished = {
-//                                onboardingViewModel.completeOnboarding()
-//                            }
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,41 +47,43 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TempestiaTheme {
-                val onboardingViewModel: OnboardingViewModel = viewModel()
+                val isSystemDark = isSystemInDarkTheme()
+                val colors = if (isSystemDark) DarkTempestiaColors else LightTempestiaColors
 
-                var showOnboarding by rememberSaveable { mutableStateOf(true) }
-                var showMap by rememberSaveable { mutableStateOf(false) }
+                CompositionLocalProvider(LocalTempestiaColors provides colors) {
 
-                if (showMap) {
-                    com.example.tempestia.ui.onboarding.view.MapScreen(
-                        onBack = {
-                            showMap = false
-                            showOnboarding = true
-                        },
-                        onLocationSelected = { lat, lng ->
-                            // TODO: Save location to ViewModel
-                            Log.i("TAG", "Location: $lat, $lng")
+                    val onboardingViewModel: OnboardingViewModel = viewModel()
+                    val isOnboardingCompleted by onboardingViewModel.isOnboardingCompleted.collectAsState(initial = null)
 
-                            onboardingViewModel.saveLocation(lat, lng)
+                    var showMap by rememberSaveable { mutableStateOf(false) }
 
-                            showMap = false
-                            showOnboarding = false
-                            onboardingViewModel.completeOnboarding()
-                        }
-                    )
-                } else if (showOnboarding) {
-                    OnboardingScreen(
-                        onFinished = {
-                            onboardingViewModel.completeOnboarding()
-                            showOnboarding = false
-                        },
-                        onOpenMap = {
-                            showOnboarding = false
-                            showMap = true
-                        }
-                    )
-                } else {
-                    TempestiaApp()
+                    if (isOnboardingCompleted == null)
+                        Surface(modifier = Modifier.fillMaxSize()) {}
+                    else if (showMap) {
+                        MapScreen(
+                            onBack = {
+                                showMap = false
+                            },
+                            onLocationSelected = { lat, lng ->
+                                onboardingViewModel.saveLocation(lat, lng)
+
+                                showMap = false
+                                onboardingViewModel.completeOnboarding()
+                            }
+                        )
+                    } else if (isOnboardingCompleted == true) {
+                        TempestiaApp()
+                    } else {
+                        OnboardingScreen(
+                            onFinished = {
+                                onboardingViewModel.completeOnboarding()
+                            },
+                            onOpenMap = {
+                                showMap = true
+                            }
+                        )
+                    }
+
                 }
             }
         }
@@ -99,36 +92,86 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun TempestiaApp() {
+    val colors = LocalTempestiaColors.current
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach {
-                item(
-                    icon = {
-                        Icon(
-                            it.icon,
-                            contentDescription = it.label
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = colors.bgDeep,
+        bottomBar = {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 24.dp, bottom = 24.dp)
+            ) {
+                NavigationBar(
+                    modifier = Modifier.clip(RoundedCornerShape(32.dp))
+                        .border(1.dp, colors.glassBorder, RoundedCornerShape(32.dp)),
+                    containerColor = colors.bgCard,
+                    contentColor = colors.text1,
+                    tonalElevation = 0.dp,
+                    windowInsets = WindowInsets(0.dp)
+                ) {
+                    AppDestinations.entries.forEach { destination ->
+                        val isSelected = currentDestination == destination
+
+                        NavigationBarItem(
+                            icon = {
+                                Icon(
+                                    imageVector = destination.icon,
+                                    contentDescription = destination.label
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = destination.label,
+                                    fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
+                                )
+                            },
+                            selected = isSelected,
+                            onClick = { currentDestination = destination },
+                            // 3. Custom colors for the selected/unselected states
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = colors.purpleBright,
+                                selectedTextColor = colors.purpleBright,
+                                indicatorColor = colors.purpleCore.copy(alpha = 0.15f), // Soft pill behind selected icon
+                                unselectedIconColor = colors.text3,
+                                unselectedTextColor = colors.text3
+                            )
                         )
-                    },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it }
-                )
+                    }
+                }
             }
         }
-    ) {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            HomeScreen(modifier = Modifier.padding(innerPadding))
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            when (currentDestination) {
+                AppDestinations.HOME -> {
+                    HomeScreen()
+                }
+
+                AppDestinations.FAVORITES -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Favorites Coming Soon", color = colors.text1, fontSize = 24.sp)
+                    }
+                }
+
+                AppDestinations.PROFILE -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Profile Coming Soon", color = colors.text1, fontSize = 24.sp)
+                    }
+                }
+
+                AppDestinations.SETTINGS -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Settings Coming Soon", color = colors.text1, fontSize = 24.sp)
+                    }
+                }
+            }
         }
     }
-}
-
-enum class AppDestinations(
-    val label: String,
-    val icon: ImageVector,
-) {
-    HOME("Home", Icons.Default.Home),
-    FAVORITES("Favorites", Icons.Default.Favorite),
-    PROFILE("Profile", Icons.Default.AccountBox),
 }
