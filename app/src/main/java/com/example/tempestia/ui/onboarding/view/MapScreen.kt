@@ -53,19 +53,20 @@ fun MapScreen(
         } else if (hasDragged) {
             val target = cameraPositionState.position.target
             withContext(Dispatchers.IO) {
-                try {
+                addressText = try {
                     val geocoder = Geocoder(context, Locale.getDefault())
 
                     @Suppress("DEPRECATION")
                     val addresses = geocoder.getFromLocation(target.latitude, target.longitude, 1)
 
                     if (!addresses.isNullOrEmpty()) {
-                        addressText = addresses[0].getAddressLine(0) ?: "Unknown Location"
+                        addresses[0].getAddressLine(0) ?: "Unknown Location"
                     } else {
-                        addressText = String.format(Locale.US, "Lat: %.4f, Lng: %.4f", target.latitude, target.longitude)
+                        String.format(Locale.US, "Lat: %.4f, Lng: %.4f", target.latitude, target.longitude)
                     }
                 } catch (e: Exception) {
-                    addressText = String.format(Locale.US, "Lat: %.4f, Lng: %.4f", target.latitude, target.longitude)
+                    android.util.Log.e("MapScreen", "Geocoder failed to find address", e)
+                    String.format(Locale.US, "Lat: %.4f, Lng: %.4f", target.latitude, target.longitude)
                 }
             }
         }

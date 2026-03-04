@@ -1,4 +1,4 @@
-package com.example.tempestia.ui.home
+package com.example.tempestia.ui.home.view
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -8,11 +8,19 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,14 +30,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,7 +46,6 @@ import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
 import java.util.Locale
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
@@ -65,7 +69,11 @@ fun HomeScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize().background(colors.bgDeep)) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colors.bgDeep)
+    ) {
 
         AnimatedParticleBackground()
 
@@ -100,14 +108,18 @@ fun WeatherDashboard(data: WeatherResponse) {
     val colors = LocalTempestiaColors.current
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 48.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 48.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.background(colors.glass, RoundedCornerShape(50.dp))
+            modifier = Modifier
+                .background(colors.glass, RoundedCornerShape(50.dp))
                 .border(1.dp, colors.glassBorder, RoundedCornerShape(50.dp))
                 .padding(horizontal = 20.dp, vertical = 10.dp)
         ) {
@@ -148,7 +160,7 @@ fun WeatherDashboard(data: WeatherResponse) {
                 brush = Brush.linearGradient(listOf(colors.text1, colors.purpleBright)),
                 fontSize = 110.sp,
                 fontWeight = FontWeight.Light,
-                ),
+            ),
             modifier = Modifier.offset(x = 10.dp)
         )
 
@@ -163,7 +175,9 @@ fun WeatherDashboard(data: WeatherResponse) {
         Spacer(modifier = Modifier.height(14.dp))
 
         Column(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(32.dp))
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(32.dp))
                 .background(colors.glass, RoundedCornerShape(32.dp))
                 .border(1.dp, colors.glassBorder, RoundedCornerShape(32.dp))
                 .padding(14.dp)
@@ -174,6 +188,173 @@ fun WeatherDashboard(data: WeatherResponse) {
                 MetricItem("FEELS LIKE", "${data.main.feelsLike.toInt()}°", Modifier.weight(1f))
                 MetricItem("HUMIDITY", "${data.main.humidity}%", Modifier.weight(1f))
                 MetricItem("WIND", "$windSpeedKmh km/h", Modifier.weight(1f))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Row(
+            modifier = Modifier.align(Alignment.Start),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Filled.Schedule,
+                contentDescription = null,
+                tint = colors.text3,
+                modifier = Modifier
+                    .size(16.dp)
+                    .offset(y = (-1).dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "HOURLY FORECAST",
+                color = colors.text3,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+            )
+        }
+
+        HourlyForecastSection()
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Row(
+            modifier = Modifier.align(Alignment.Start),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Filled.CalendarMonth,
+                contentDescription = null,
+                tint = colors.text3,
+                modifier = Modifier
+                    .size(16.dp)
+                    .offset(y = (-1).dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "5-DAY FORECAST",
+                color = colors.text3,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+            )
+        }
+
+        DailyForecastSection()
+
+        Spacer(modifier = Modifier.height(64.dp))
+    }
+}
+
+@Composable
+fun HourlyForecastSection() {
+    val colors = LocalTempestiaColors.current
+
+    val hourlyData = listOf(
+        Triple("Now", "⛅", "31°"),
+        Triple("1 PM", "☀️", "33°"),
+        Triple("2 PM", "☀️", "33°"),
+        Triple("3 PM", "☁️", "32°"),
+        Triple("4 PM", "🌧️", "29°"),
+        Triple("5 PM", "🌧️", "28°")
+    )
+
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(hourlyData) { (time, icon, temp) ->
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .width(76.dp)
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(colors.glass)
+                    .border(1.dp, colors.glassBorder, RoundedCornerShape(32.dp))
+                    .padding(vertical = 8.dp)
+            ) {
+                Text(
+                    text = time,
+                    color = colors.text2,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(text = icon, fontSize = 28.sp)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = temp,
+                    color = colors.text1,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DailyForecastSection() {
+    val colors = LocalTempestiaColors.current
+
+    val dailyData = listOf(
+        Triple("Today", "⛅", "22° / 31°"),
+        Triple("Monday", "☀️", "23° / 33°"),
+        Triple("Tuesday", "🌧️", "20° / 28°"),
+        Triple("Wednesday", "☁️", "19° / 26°"),
+        Triple("Thursday", "☀️", "21° / 29°")
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(32.dp))
+            .background(colors.glass)
+            .border(1.dp, colors.glassBorder, RoundedCornerShape(32.dp))
+            .padding(24.dp)
+    ) {
+        dailyData.forEachIndexed { index, (day, icon, temp) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    day,
+                    color = colors.text2,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    icon,
+                    fontSize = 20.sp,
+                    modifier = Modifier.weight(0.5f),
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    temp,
+                    color = colors.text1,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.End
+                )
+            }
+
+            if (index < dailyData.size - 1) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    color = colors.glassBorder.copy(alpha = 0.3f)
+                )
             }
         }
     }
@@ -201,36 +382,12 @@ fun MetricItem(label: String, value: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun WeatherDetailCard(title: String, value: String, modifier: Modifier = Modifier) {
-    val colors = LocalTempestiaColors.current
-
-    Column(
-        modifier = modifier.clip(RoundedCornerShape(32.dp)).background(colors.bgCard)
-            .border(1.dp, colors.glassBorder, RoundedCornerShape(32.dp)).padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = title,
-            fontSize = 14.sp,
-            color = colors.text3,
-            fontWeight = FontWeight.Medium
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = value,
-            fontSize = 28.sp,
-            color = colors.text1,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
 fun ErrorScreen(message: String) {
     val colors = LocalTempestiaColors.current
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

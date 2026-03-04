@@ -1,7 +1,6 @@
 package com.example.tempestia
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,25 +12,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.NotificationsNone
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.tempestia.ui.home.HomeScreen
+import com.example.tempestia.ui.home.view.HomeScreen
 import com.example.tempestia.ui.navigations.AppDestinations
 import com.example.tempestia.ui.onboarding.view.DarkTempestiaColors
 import com.example.tempestia.ui.onboarding.view.LightTempestiaColors
@@ -53,7 +45,9 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(LocalTempestiaColors provides colors) {
 
                     val onboardingViewModel: OnboardingViewModel = viewModel()
-                    val isOnboardingCompleted by onboardingViewModel.isOnboardingCompleted.collectAsState(initial = null)
+                    val isOnboardingCompleted by onboardingViewModel.isOnboardingCompleted.collectAsState(
+                        initial = null
+                    )
 
                     var showMap by rememberSaveable { mutableStateOf(false) }
 
@@ -100,13 +94,15 @@ fun TempestiaApp() {
         containerColor = colors.bgDeep,
         bottomBar = {
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(start = 24.dp, end = 24.dp, bottom = 24.dp)
             ) {
                 NavigationBar(
-                    modifier = Modifier.clip(RoundedCornerShape(32.dp))
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(32.dp))
                         .border(1.dp, colors.glassBorder, RoundedCornerShape(32.dp)),
-                    containerColor = colors.bgCard,
+                    containerColor = colors.bgCard.copy(alpha = 1f),
                     contentColor = colors.text1,
                     tonalElevation = 0.dp,
                     windowInsets = WindowInsets(0.dp)
@@ -124,7 +120,7 @@ fun TempestiaApp() {
                             label = {
                                 Text(
                                     text = destination.label,
-                                    fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
+                                    fontWeight = if (isSelected) Bold else Normal
                                 )
                             },
                             selected = isSelected,
@@ -146,7 +142,7 @@ fun TempestiaApp() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(top = innerPadding.calculateTopPadding()),
             contentAlignment = Alignment.Center
         ) {
             when (currentDestination) {
