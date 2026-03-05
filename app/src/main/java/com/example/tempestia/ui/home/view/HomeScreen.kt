@@ -57,12 +57,13 @@ import com.example.tempestia.data.weather.model.HourlyWeather
 import com.example.tempestia.data.weather.model.WeatherResponse
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlin.math.roundToInt
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    weatherViewModel: WeatherViewModel = viewModel(),
-    onboardingViewModel: OnboardingViewModel = viewModel()
+    weatherViewModel: WeatherViewModel,
+    onboardingViewModel: OnboardingViewModel
 ) {
     val colors = LocalTempestiaColors.current
     val weatherState by weatherViewModel.weatherState.collectAsState()
@@ -72,8 +73,6 @@ fun HomeScreen(
     LaunchedEffect(userLocation) {
         userLocation?.let { (lat, lng) ->
             weatherViewModel.getWeather(lat, lng)
-        } ?: run {
-            weatherViewModel.getWeather(lat = 31.2001, lon = 29.9187)
         }
     }
 
@@ -198,7 +197,7 @@ fun WeatherDashboard(data: WeatherResponse, cityName: String) {
                 MetricItem("FEELS LIKE", "${data.current.feelsLike.toInt()}°", Modifier.weight(1f))
                 MetricItem("HUMIDITY", "${data.current.humidity}%", Modifier.weight(1f))
                 MetricItem("WIND", "$windSpeedKmh km/h", Modifier.weight(1f))
-                MetricItem("UV INDEX", "${data.current.uvi.toInt()}", Modifier.weight(1f))
+                MetricItem("UV INDEX", "${data.current.uvi.roundToInt()}", Modifier.weight(1f))
             }
         }
 

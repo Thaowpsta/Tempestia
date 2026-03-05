@@ -1,6 +1,7 @@
 package com.example.tempestia.ui.home.viewModel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.tempestia.BuildConfig
 import com.example.tempestia.repository.WeatherRepository
@@ -9,10 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class WeatherViewModel : ViewModel() {
-
-    private val repository = WeatherRepository()
-
+class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() {
     private val _weatherState: MutableStateFlow<WeatherState> = MutableStateFlow(WeatherState.Idle)
     val weatherState: StateFlow<WeatherState> = _weatherState.asStateFlow()
 
@@ -34,7 +32,6 @@ class WeatherViewModel : ViewModel() {
                         ?: weatherBody.timezone.substringAfterLast("/")
 
                     _weatherState.value = WeatherState.Success(weatherBody, finalCityName)
-
                 } else {
                     _weatherState.value = WeatherState.Error("Network Error: ${weatherResponse.code()}")
                 }
@@ -42,5 +39,17 @@ class WeatherViewModel : ViewModel() {
                 _weatherState.value = WeatherState.Error(e.localizedMessage ?: "Unknown Error occurred")
             }
         }
+    }
+}
+
+class WeatherViewModelFactory(
+    private val repository: WeatherRepository
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(WeatherViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return WeatherViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

@@ -18,12 +18,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.tempestia.repository.WeatherRepository
 import com.example.tempestia.ui.home.view.HomeScreen
+import com.example.tempestia.ui.home.viewModel.WeatherViewModel
+import com.example.tempestia.ui.home.viewModel.WeatherViewModelFactory
 import com.example.tempestia.ui.navigations.AppDestinations
 import com.example.tempestia.ui.onboarding.view.DarkTempestiaColors
 import com.example.tempestia.ui.onboarding.view.LightTempestiaColors
@@ -31,6 +35,7 @@ import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.ui.onboarding.view.MapScreen
 import com.example.tempestia.ui.onboarding.view.OnboardingScreen
 import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
+import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModelFactory
 import com.example.tempestia.ui.theme.TempestiaTheme
 
 class MainActivity : ComponentActivity() {
@@ -42,9 +47,14 @@ class MainActivity : ComponentActivity() {
                 val isSystemDark = isSystemInDarkTheme()
                 val colors = if (isSystemDark) DarkTempestiaColors else LightTempestiaColors
 
+                val context = LocalContext.current
+                val repository = remember { WeatherRepository(context) }
+
                 CompositionLocalProvider(LocalTempestiaColors provides colors) {
 
-                    val onboardingViewModel: OnboardingViewModel = viewModel()
+                    val onboardingViewModel: OnboardingViewModel = viewModel(
+                    factory = OnboardingViewModelFactory(repository)
+                    )
                     val isOnboardingCompleted by onboardingViewModel.isOnboardingCompleted.collectAsState(
                         initial = null
                     )
@@ -66,7 +76,7 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     } else if (isOnboardingCompleted == true) {
-                        TempestiaApp()
+                        TempestiaApp(repository, onboardingViewModel)
                     } else {
                         OnboardingScreen(
                             onFinished = {
@@ -85,7 +95,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun TempestiaApp() {
+fun TempestiaApp(repository: WeatherRepository, onboardingViewModel: OnboardingViewModel) {
     val colors = LocalTempestiaColors.current
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
@@ -147,7 +157,10 @@ fun TempestiaApp() {
         ) {
             when (currentDestination) {
                 AppDestinations.HOME -> {
-                    HomeScreen()
+                    val weatherViewModel: WeatherViewModel = viewModel(
+                        factory = WeatherViewModelFactory(repository)
+                    )
+                    HomeScreen(weatherViewModel = weatherViewModel, onboardingViewModel = onboardingViewModel)
                 }
 
                 AppDestinations.FAVORITES -> {
