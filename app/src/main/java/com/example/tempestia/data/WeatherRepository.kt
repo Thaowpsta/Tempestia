@@ -26,6 +26,9 @@ class WeatherRepository(context: Context) {
     suspend fun getCityName(lat: Double, lon: Double, apiKey: String) =
         remoteDatasource.getCityName(lat, lon, apiKey)
 
+    suspend fun getCoordinatesByName(query: String, apiKey: String, limit: Int = 5) =
+        remoteDatasource.getCoordinatesByName(query, apiKey, limit)
+
     fun getFavoriteCities(): Flow<List<FavoriteCity>> = FavoriteslocalDatasource.getAllFavorites()
 
     suspend fun insertFavorite(city: FavoriteCity) = FavoriteslocalDatasource.insertFavorite(city)

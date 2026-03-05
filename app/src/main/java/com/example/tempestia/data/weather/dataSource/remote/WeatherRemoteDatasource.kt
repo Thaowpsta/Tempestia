@@ -11,4 +11,7 @@ class WeatherRemoteDatasource {
 
     suspend fun getCityName(lat: Double, lon: Double, apiKey: String) =
         weatherService.getCityName(lat = lat, lon = lon, apiKey = apiKey)
+
+    suspend fun getCoordinatesByName(query: String, apiKey: String, limit: Int = 5) =
+        weatherService.getCoordinatesByName(query = query, limit = limit, apiKey = apiKey)
 }

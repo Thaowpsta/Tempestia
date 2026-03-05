@@ -243,7 +243,7 @@ fun WeatherDashboard(data: WeatherResponse, cityName: String) {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "5-DAY FORECAST",
+                text = "6-DAY FORECAST",
                 color = colors.text3,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,

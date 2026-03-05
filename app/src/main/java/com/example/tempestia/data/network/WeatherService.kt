@@ -24,4 +24,11 @@ interface WeatherService {
         @Query("limit") limit: Int = 1,
         @Query("appid") apiKey: String
     ): Response<List<GeoResponse>>
+
+    @GET("geo/1.0/direct")
+    suspend fun getCoordinatesByName(
+        @Query("q") query: String,
+        @Query("limit") limit: Int = 1,
+        @Query("appid") apiKey: String
+    ): Response<List<GeoResponse>>
 }

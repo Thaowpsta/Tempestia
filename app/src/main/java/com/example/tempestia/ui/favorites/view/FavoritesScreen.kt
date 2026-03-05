@@ -1,0 +1,456 @@
+package com.example.tempestia.ui.favorites.view
+
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.tempestia.data.favorites.model.FavoriteCity
+import com.example.tempestia.data.weather.model.GeoResponse
+import com.example.tempestia.ui.favorites.viewModel.FavoriteWeatherState
+import com.example.tempestia.ui.favorites.viewModel.FavoritesViewModel
+import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
+import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
+import kotlin.math.roundToInt
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FavoritesScreen(viewModel: FavoritesViewModel) {
+    val colors = LocalTempestiaColors.current
+
+    val favoriteWeather by viewModel.favoriteWeather.collectAsState()
+
+    var localSearchQuery by remember { mutableStateOf("") }
+    val filteredWeather = favoriteWeather.filter {
+        it.city.cityName.contains(localSearchQuery, ignoreCase = true)
+    }
+
+    var showAddSearchDialog by remember { mutableStateOf(false) }
+    var cityToConfirmAdd by remember { mutableStateOf<GeoResponse?>(null) }
+    var cityToConfirmDelete by remember { mutableStateOf<FavoriteCity?>(null) }
+
+    if (cityToConfirmAdd != null) {
+        AlertDialog(
+            onDismissRequest = { cityToConfirmAdd = null },
+            containerColor = colors.bgCard.copy(alpha = 1f),
+            titleContentColor = colors.text1,
+            textContentColor = colors.text3,
+            title = { Text("Add Location") },
+            text = { Text("Do you want to add ${cityToConfirmAdd?.name} to your saved locations?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    cityToConfirmAdd?.let { viewModel.addFavorite(it) }
+                    cityToConfirmAdd = null
+                    showAddSearchDialog = false
+                    viewModel.clearApiSearch()
+                }) {
+                    Text("Add City", color = colors.purpleBright, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { cityToConfirmAdd = null }) {
+                    Text(
+                        "Cancel",
+                        color = colors.text3
+                    )
+                }
+            }
+        )
+    }
+
+    if (cityToConfirmDelete != null) {
+        AlertDialog(
+            onDismissRequest = { cityToConfirmDelete = null },
+            containerColor = colors.bgCard.copy(alpha = 1f),
+            titleContentColor = colors.text1,
+            textContentColor = colors.text3,
+            title = { Text("Remove Location") },
+            text = { Text("Are you sure you want to remove ${cityToConfirmDelete?.cityName}?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    cityToConfirmDelete?.let { viewModel.removeCity(it) }
+                    cityToConfirmDelete = null
+                }) {
+                    Text("Remove", color = Color(0xFFFF4B4B), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { cityToConfirmDelete = null }) {
+                    Text(
+                        "Cancel",
+                        color = colors.text3
+                    )
+                }
+            }
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(colors.bgDeep)) {
+        AnimatedParticleBackground()
+
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 48.dp)
+        ) {
+            OutlinedTextField(
+                value = localSearchQuery,
+                onValueChange = { localSearchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(colors.glass)
+                    .border(1.dp, colors.glassBorder, RoundedCornerShape(32.dp)),
+                placeholder = { Text("Search saved locations...", color = colors.text3) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Filled.Search,
+                        contentDescription = "Search",
+                        tint = colors.purpleBright
+                    )
+                },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = colors.text1,
+                    unfocusedTextColor = colors.text1,
+                    cursorColor = colors.purpleBright
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "SAVED LOCATIONS • ${filteredWeather.size}",
+                color = colors.text3,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                modifier = Modifier.padding(bottom = 16.dp, start = 4.dp)
+            )
+
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 100.dp)
+            ) {
+                items(filteredWeather, key = { it.city.cityName }) { state ->
+                    StableSwipeToDismissCard(
+                        state = state,
+                        onDeleteRequest = { cityToConfirmDelete = state.city }
+                    )
+                }
+            }
+        }
+
+        FloatingActionButton(
+            onClick = { showAddSearchDialog = true },
+            containerColor = colors.purpleBright,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 120.dp, end = 24.dp)
+                .size(64.dp)
+        ) {
+            Icon(
+                Icons.Filled.Add,
+                contentDescription = "Add City",
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+    }
+
+    val apiSearchQuery by viewModel.apiSearchQuery.collectAsState()
+    val apiSearchResults by viewModel.apiSearchResults.collectAsState()
+    val isSearchingApi by viewModel.isSearchingApi.collectAsState()
+
+    if (showAddSearchDialog) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+        ModalBottomSheet(
+            onDismissRequest = {
+                showAddSearchDialog = false
+                viewModel.clearApiSearch()
+            },
+            sheetState = sheetState,
+            containerColor = colors.bgDeep,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = colors.text3) }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .padding(bottom = 64.dp)
+            ) {
+                Text(
+                    "Add New City",
+                    color = colors.text1,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = apiSearchQuery,
+                    onValueChange = { viewModel.onApiSearchQueryChanged(it) },
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(32.dp))
+                        .background(colors.glass),
+                    placeholder = { Text("Search OpenWeatherMap...", color = colors.text3) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Filled.Search,
+                            contentDescription = "Search",
+                            tint = colors.purpleBright
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedTextColor = colors.text1,
+                        unfocusedTextColor = colors.text1
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (isSearchingApi) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(150.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = colors.purpleBright)
+                    }
+                } else {
+                    LazyColumn(modifier = Modifier.heightIn(max = 350.dp)) {
+                        itemsIndexed(apiSearchResults ?: emptyList()) { index, result ->
+                            SearchResultRow(result) { cityToConfirmAdd = result }
+                            if (index < (apiSearchResults?.size ?: 0) - 1) {
+                                HorizontalDivider(color = colors.glassBorder.copy(alpha = 0.5f))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StableSwipeToDismissCard(state: FavoriteWeatherState, onDeleteRequest: () -> Unit) {
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    val animatedOffsetX by animateFloatAsState(targetValue = offsetX, label = "swipe")
+    val colors = LocalTempestiaColors.current
+    val density = LocalDensity.current
+
+    val iconAlpha = (-animatedOffsetX / 200f).coerceIn(0f, 1f)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(colors.glass)
+            .border(1.dp, colors.glassBorder.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+    ) {
+        if (animatedOffsetX < 0f) {
+            val revealWidth = with(density) { (-animatedOffsetX).toDp() }
+
+            Box(modifier = Modifier.matchParentSize()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .width(revealWidth)
+                        .fillMaxHeight()
+                        .background(Color(0xFFFF4B4B))
+                )
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .padding(end = 28.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.DeleteOutline,
+                        contentDescription = "Delete",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .alpha(iconAlpha) // Smoothly fades in!
+                    )
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset { IntOffset(animatedOffsetX.roundToInt(), 0) }
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            if (offsetX < -250f) {
+                                onDeleteRequest()
+                            }
+                            offsetX = 0f
+                        },
+                        onHorizontalDrag = { _, dragAmount ->
+                            if (dragAmount < 0 || offsetX < 0) {
+                                offsetX = (offsetX + dragAmount).coerceAtMost(0f)
+                            }
+                        }
+                    )
+                }
+                .padding(20.dp)
+        ) {
+            FavoriteCityCardContent(state)
+        }
+    }
+}
+
+@Composable
+fun FavoriteCityCardContent(state: FavoriteWeatherState) {
+    val colors = LocalTempestiaColors.current
+    val city = state.city
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = city.cityName.uppercase(),
+                    color = colors.text1,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 1.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                if (city.country != null) {
+                    Text(
+                        text = "${countryCodeToEmoji(city.country)} ${city.country}",
+                        color = colors.text2,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(color = colors.purpleBright, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = getWeatherEmoji(state.iconCode ?: ""),
+                            fontSize = 28.sp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "${state.temp?.roundToInt() ?: "--"}°",
+                            color = colors.text1,
+                            fontSize = 38.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Text(
+                        text = state.condition ?: "Unknown",
+                        color = colors.text3,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(color = colors.glassBorder.copy(alpha = 0.3f))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val windKmh = state.windSpeed?.let { (it * 3.6).roundToInt() } ?: 0
+
+            MetricText("Humidity", "${state.humidity ?: 0}%")
+            Spacer(modifier = Modifier.weight(1f))
+            MetricText("Wind", "$windKmh km/h")
+            Spacer(modifier = Modifier.weight(1f))
+            MetricText("UV", "${state.uvi?.roundToInt() ?: 0}")
+        }
+    }
+}
+
+@Composable
+fun SearchResultRow(result: GeoResponse, onClick: () -> Unit) {
+    val colors = LocalTempestiaColors.current
+    val locationText = listOfNotNull(result.state, result.country).joinToString(", ")
+
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = 8.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Filled.LocationOn, contentDescription = null, tint = colors.purpleBright)
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+            Text(text = result.name, color = colors.text1, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            if (locationText.isNotEmpty()) {
+                Text(text = locationText, color = colors.text3, fontSize = 13.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun MetricText(label: String, value: String) {
+    val colors = LocalTempestiaColors.current
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(text = "$label ", color = colors.text3, fontSize = 13.sp)
+        Text(text = value, color = colors.text1, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+fun countryCodeToEmoji(countryCode: String): String {
+    if (countryCode.length != 2) return "🌍"
+    val firstLetter = Character.codePointAt(countryCode.uppercase(), 0) - 0x41 + 0x1F1E6
+    val secondLetter = Character.codePointAt(countryCode.uppercase(), 1) - 0x41 + 0x1F1E6
+    return String(Character.toChars(firstLetter)) + String(Character.toChars(secondLetter))
+}
+
+fun getWeatherEmoji(iconCode: String): String {
+    if (iconCode.isBlank()) return "⛅"
+    return when (iconCode.take(2)) {
+        "01" -> "☀️"
+        "02" -> "⛅"
+        "03", "04" -> "☁️"
+        "09", "10" -> "🌧️"
+        "11" -> "⛈️"
+        "13" -> "❄️"
+        "50" -> "🌫️"
+        else -> "⛅"
+    }
+}

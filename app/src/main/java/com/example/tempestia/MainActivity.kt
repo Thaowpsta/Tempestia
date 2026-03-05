@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.ui.favorites.view.FavoritesScreen
+import com.example.tempestia.ui.favorites.viewModel.FavoritesViewModel
+import com.example.tempestia.ui.favorites.viewModel.FavoritesViewModelFactory
 import com.example.tempestia.ui.home.view.HomeScreen
 import com.example.tempestia.ui.home.viewModel.WeatherViewModel
 import com.example.tempestia.ui.home.viewModel.WeatherViewModelFactory
@@ -164,9 +167,10 @@ fun TempestiaApp(repository: WeatherRepository, onboardingViewModel: OnboardingV
                 }
 
                 AppDestinations.FAVORITES -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Favorites Coming Soon", color = colors.text1, fontSize = 24.sp)
-                    }
+                    val favoritesViewModel : FavoritesViewModel = viewModel(
+                        factory = FavoritesViewModelFactory(repository)
+                    )
+                    FavoritesScreen(favoritesViewModel)
                 }
 
                 AppDestinations.PROFILE -> {
