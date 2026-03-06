@@ -1,4 +1,4 @@
-package com.example.tempestia.ui.theme
+package com.example.tempestia.theme
 
 import androidx.compose.ui.graphics.Color
 

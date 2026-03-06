@@ -14,9 +14,20 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     private val _weatherState: MutableStateFlow<WeatherState> = MutableStateFlow(WeatherState.Idle)
     val weatherState: StateFlow<WeatherState> = _weatherState.asStateFlow()
 
+    private var lastRequestedLat: Double? = null
+    private var lastRequestedLon: Double? = null
+
     private val apiKey = BuildConfig.WEATHER_API_KEY
 
     fun getWeather(lat: Double, lon: Double) {
+
+        if (lat == lastRequestedLat && lon == lastRequestedLon && _weatherState.value !is WeatherState.Error) {
+            return
+        }
+
+        lastRequestedLat = lat
+        lastRequestedLon = lon
+
         viewModelScope.launch {
             _weatherState.value = WeatherState.Loading
 

@@ -39,7 +39,8 @@ import com.example.tempestia.ui.onboarding.view.MapScreen
 import com.example.tempestia.ui.onboarding.view.OnboardingScreen
 import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
 import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModelFactory
-import com.example.tempestia.ui.theme.TempestiaTheme
+import com.example.tempestia.theme.TempestiaTheme
+import com.example.tempestia.ui.alerts.view.AlertsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -174,9 +175,7 @@ fun TempestiaApp(repository: WeatherRepository, onboardingViewModel: OnboardingV
                 }
 
                 AppDestinations.PROFILE -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Profile Coming Soon", color = colors.text1, fontSize = 24.sp)
-                    }
+                    AlertsScreen()
                 }
 
                 AppDestinations.SETTINGS -> {

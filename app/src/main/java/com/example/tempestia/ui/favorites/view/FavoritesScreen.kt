@@ -35,6 +35,7 @@ import com.example.tempestia.ui.favorites.viewModel.FavoriteWeatherState
 import com.example.tempestia.ui.favorites.viewModel.FavoritesViewModel
 import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
+import com.example.tempestia.utils.getWeatherEmoji
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -439,18 +440,4 @@ fun countryCodeToEmoji(countryCode: String): String {
     val firstLetter = Character.codePointAt(countryCode.uppercase(), 0) - 0x41 + 0x1F1E6
     val secondLetter = Character.codePointAt(countryCode.uppercase(), 1) - 0x41 + 0x1F1E6
     return String(Character.toChars(firstLetter)) + String(Character.toChars(secondLetter))
-}
-
-fun getWeatherEmoji(iconCode: String): String {
-    if (iconCode.isBlank()) return "⛅"
-    return when (iconCode.take(2)) {
-        "01" -> "☀️"
-        "02" -> "⛅"
-        "03", "04" -> "☁️"
-        "09", "10" -> "🌧️"
-        "11" -> "⛈️"
-        "13" -> "❄️"
-        "50" -> "🌫️"
-        else -> "⛅"
-    }
 }
