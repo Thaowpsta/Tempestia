@@ -1,6 +1,8 @@
 package com.example.tempestia.repository
 
 import android.content.Context
+import com.example.tempestia.data.alerts.dataSource.locale.AlertsLocalDatasource
+import com.example.tempestia.data.alerts.model.Alert
 import com.example.tempestia.data.favorites.dataSource.local.FavoritesLocalDatasource
 import com.example.tempestia.data.favorites.model.FavoriteCity
 import com.example.tempestia.data.settings.dataSource.locale.SettingsLocalDatasource
@@ -10,8 +12,8 @@ import kotlinx.coroutines.flow.Flow
 class WeatherRepository(context: Context) {
     private val remoteDatasource = WeatherRemoteDatasource()
     private val FavoriteslocalDatasource = FavoritesLocalDatasource(context)
-
     private val onboardingLocalDatasource = SettingsLocalDatasource(context)
+    private val alertsLocalDataSource = AlertsLocalDatasource(context)
 
     val isOnboardingCompleted = onboardingLocalDatasource.isOnboardingCompleted
     val locationFlow = onboardingLocalDatasource.locationFlow
@@ -22,16 +24,16 @@ class WeatherRepository(context: Context) {
 
     suspend fun getWeather(lat: Double, lon: Double, apiKey: String) =
         remoteDatasource.getCurrentWeather(lat, lon, apiKey)
-
     suspend fun getCityName(lat: Double, lon: Double, apiKey: String) =
         remoteDatasource.getCityName(lat, lon, apiKey)
-
     suspend fun getCoordinatesByName(query: String, apiKey: String, limit: Int = 5) =
         remoteDatasource.getCoordinatesByName(query, apiKey, limit)
 
     fun getFavoriteCities(): Flow<List<FavoriteCity>> = FavoriteslocalDatasource.getAllFavorites()
-
     suspend fun insertFavorite(city: FavoriteCity) = FavoriteslocalDatasource.insertFavorite(city)
-
     suspend fun deleteFavorite(city: FavoriteCity) = FavoriteslocalDatasource.deleteFavorite(city)
+
+    fun getSubscribedAlerts(): Flow<List<Alert>> = alertsLocalDataSource.getAllAlerts()
+    suspend fun insertAlert(alert: Alert) = alertsLocalDataSource.insertAlert(alert)
+    suspend fun deleteAlert(id: String) = alertsLocalDataSource.deleteAlert(id)
 }

@@ -41,11 +41,18 @@ import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
 import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModelFactory
 import com.example.tempestia.theme.TempestiaTheme
 import com.example.tempestia.ui.alerts.view.AlertsScreen
+import com.example.tempestia.ui.alerts.viewModel.AlertsViewModel
+import com.example.tempestia.ui.alerts.viewModel.AlertsViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val openTab = intent.getStringExtra("OPEN_TAB")
+        val startDestination =
+            if (openTab == "ALERTS") AppDestinations.PROFILE else AppDestinations.HOME
+
         setContent {
             TempestiaTheme {
                 val isSystemDark = isSystemInDarkTheme()
@@ -57,7 +64,7 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(LocalTempestiaColors provides colors) {
 
                     val onboardingViewModel: OnboardingViewModel = viewModel(
-                    factory = OnboardingViewModelFactory(repository)
+                        factory = OnboardingViewModelFactory(repository)
                     )
                     val isOnboardingCompleted by onboardingViewModel.isOnboardingCompleted.collectAsState(
                         initial = null
@@ -80,7 +87,7 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     } else if (isOnboardingCompleted == true) {
-                        TempestiaApp(repository, onboardingViewModel)
+                        TempestiaApp(repository, onboardingViewModel, startDestination)
                     } else {
                         OnboardingScreen(
                             onFinished = {
@@ -99,9 +106,13 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun TempestiaApp(repository: WeatherRepository, onboardingViewModel: OnboardingViewModel) {
+fun TempestiaApp(
+    repository: WeatherRepository,
+    onboardingViewModel: OnboardingViewModel,
+    startDestination: AppDestinations = AppDestinations.HOME
+) {
     val colors = LocalTempestiaColors.current
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+    var currentDestination by rememberSaveable { mutableStateOf(startDestination) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -164,18 +175,24 @@ fun TempestiaApp(repository: WeatherRepository, onboardingViewModel: OnboardingV
                     val weatherViewModel: WeatherViewModel = viewModel(
                         factory = WeatherViewModelFactory(repository)
                     )
-                    HomeScreen(weatherViewModel = weatherViewModel, onboardingViewModel = onboardingViewModel)
+                    HomeScreen(
+                        weatherViewModel = weatherViewModel,
+                        onboardingViewModel = onboardingViewModel
+                    )
                 }
 
                 AppDestinations.FAVORITES -> {
-                    val favoritesViewModel : FavoritesViewModel = viewModel(
+                    val favoritesViewModel: FavoritesViewModel = viewModel(
                         factory = FavoritesViewModelFactory(repository)
                     )
                     FavoritesScreen(favoritesViewModel)
                 }
 
                 AppDestinations.PROFILE -> {
-                    AlertsScreen()
+                    val alertsViewModel: AlertsViewModel = viewModel(
+                        factory = AlertsViewModelFactory(repository, LocalContext.current)
+                    )
+                    AlertsScreen(alertsViewModel)
                 }
 
                 AppDestinations.SETTINGS -> {
