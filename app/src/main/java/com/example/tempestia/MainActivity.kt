@@ -45,6 +45,10 @@ import com.example.tempestia.ui.alerts.viewModel.AlertsViewModel
 import com.example.tempestia.ui.alerts.viewModel.AlertsViewModelFactory
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        var isAppInForeground = false
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -102,6 +106,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        isAppInForeground = true
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isAppInForeground = false
     }
 }
 

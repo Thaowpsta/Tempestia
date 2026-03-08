@@ -10,5 +10,7 @@ data class Alert(
     val subtitle: String,
     val level: String,
     val notificationType: String,
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    val timeHour: Int? = null,
+    val timeMinute: Int? = null
 )

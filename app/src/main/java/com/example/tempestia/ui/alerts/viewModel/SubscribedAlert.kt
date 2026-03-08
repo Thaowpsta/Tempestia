@@ -8,5 +8,7 @@ data class SubscribedAlert(
     val subtitle: String,
     val level: AlertLevel,
     val notificationType: NotificationType,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val timeHour: Int? = null,
+    val timeMinute: Int? = null
 )

@@ -1,5 +1,12 @@
 package com.example.tempestia.ui.alerts.view
 
+import android.Manifest
+import android.app.TimePickerDialog
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -16,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Info
@@ -31,12 +39,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tempestia.ui.alerts.viewModel.AlertLevel
 import com.example.tempestia.ui.alerts.viewModel.AlertItem
@@ -45,17 +55,39 @@ import com.example.tempestia.ui.alerts.viewModel.SubscribedAlert
 import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.worker.NotificationType
+import java.util.Calendar
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
     val colors = LocalTempestiaColors.current
+    val context = LocalContext.current
+
     val subscribedAlerts by viewModel.subscribedAlerts.collectAsState()
     val availableTemplates by viewModel.availableTemplatesFlow.collectAsState()
 
     var showAddSheet by remember { mutableStateOf(false) }
     var alertToEdit by remember { mutableStateOf<SubscribedAlert?>(null) }
+
+    var hasNotificationPermission by remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mutableStateOf(
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            )
+        } else {
+            mutableStateOf(true) // Always true on Android 12 and below
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasNotificationPermission = isGranted
+    }
 
     if (alertToEdit != null) {
         AlertDialog(
@@ -75,7 +107,13 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         Icons.Filled.NotificationsOff,
                         isSelected = alertToEdit!!.notificationType == NotificationType.SILENT
                     ) {
-                        viewModel.updateAlert(alertToEdit!!, newType = NotificationType.SILENT)
+                        viewModel.updateAlert(
+                            alertToEdit!!,
+                            newType = NotificationType.SILENT,
+                            hour = null,
+                            minute = null,
+                            context = context
+                        )
                         alertToEdit = null
                     }
                     NotificationChoiceRow(
@@ -83,17 +121,79 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         Icons.Filled.Notifications,
                         isSelected = alertToEdit!!.notificationType == NotificationType.PUSH
                     ) {
-                        viewModel.updateAlert(alertToEdit!!, newType = NotificationType.PUSH)
+                        viewModel.updateAlert(
+                            alertToEdit!!,
+                            newType = NotificationType.PUSH,
+                            hour = null,
+                            minute = null,
+                            context = context
+                        )
                         alertToEdit = null
                     }
                     NotificationChoiceRow(
                         "Push + Loud Sound",
                         Icons.Filled.NotificationsActive,
-                        isUrgent = true,
                         isSelected = alertToEdit!!.notificationType == NotificationType.SOUND
                     ) {
-                        viewModel.updateAlert(alertToEdit!!, newType = NotificationType.SOUND)
+                        viewModel.updateAlert(
+                            alertToEdit!!,
+                            newType = NotificationType.SOUND,
+                            hour = null,
+                            minute = null,
+                            context = context
+                        )
                         alertToEdit = null
+                    }
+
+                    NotificationChoiceRow(
+                        "Full-Screen Alarm",
+                        Icons.Filled.Alarm,
+                        isUrgent = true,
+                        isSelected = alertToEdit!!.notificationType == NotificationType.ALARM
+                    ) {
+                        // Alarm Permission (Android 12+)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+
+                            if (!alarmManager.canScheduleExactAlarms()) {
+                                val intent = android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                                    data = android.net.Uri.parse("package:${context.packageName}")
+                                }
+                                context.startActivity(intent)
+                                return@NotificationChoiceRow
+                            }
+                        }
+
+                        // "Display Over Other Apps" Permission
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            if (!android.provider.Settings.canDrawOverlays(context)) {
+                                android.widget.Toast.makeText(context, "Please allow 'Display over other apps' to force the alarm on screen!", android.widget.Toast.LENGTH_LONG).show()
+                                val intent = android.content.Intent(
+                                    android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                    android.net.Uri.parse("package:${context.packageName}")
+                                )
+                                context.startActivity(intent)
+                                return@NotificationChoiceRow
+                            }
+                        }
+
+                        val calendar = Calendar.getInstance()
+                        TimePickerDialog(
+                            context,
+                            { _, selectedHour, selectedMinute ->
+                                viewModel.updateAlert(
+                                    alert = alertToEdit!!,
+                                    newType = NotificationType.ALARM,
+                                    hour = selectedHour,
+                                    minute = selectedMinute,
+                                    context = context
+                                )
+                                alertToEdit = null
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            false
+                        ).show()
                     }
                 }
             },
@@ -109,14 +209,18 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
         )
     }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(colors.bgDeep)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.bgDeep)
+    ) {
         AnimatedParticleBackground()
 
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 48.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 48.dp)
+        ) {
             Text(
                 text = "Weather Alerts",
                 color = colors.text1,
@@ -124,6 +228,17 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
+
+            if (!hasNotificationPermission) {
+                PermissionWarningBanner(
+                    onRequestPermission = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             if (subscribedAlerts.isEmpty()) {
                 Box(
@@ -168,7 +283,8 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                             onToggle = { isActive ->
                                 viewModel.updateAlert(
                                     alert,
-                                    isActive = isActive
+                                    isActive = isActive,
+                                    context = context
                                 )
                             }
                         )
@@ -202,10 +318,12 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                 containerColor = colors.bgDeep,
                 dragHandle = { BottomSheetDefaults.DragHandle(color = colors.text3) }
             ) {
-                Column(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-                    .padding(bottom = 48.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                        .padding(bottom = 48.dp)
+                ) {
                     Text(
                         "Subscribe to Alert",
                         color = colors.text1,
@@ -226,6 +344,11 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                                 TemplateRow(template) {
                                     // Instantly adds with default Push + Sound without asking!
                                     viewModel.addAlert(template, NotificationType.SOUND)
+
+                                    if (!hasNotificationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    }
+
                                     showAddSheet = false
                                 }
                             }
@@ -233,6 +356,45 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun PermissionWarningBanner(onRequestPermission: () -> Unit) {
+    val colors = LocalTempestiaColors.current
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFF59E0B).copy(alpha = 0.15f))
+            .border(1.dp, Color(0xFFF59E0B).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Filled.Warning,
+            contentDescription = "Warning",
+            tint = Color(0xFFF59E0B),
+            modifier = Modifier.size(28.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                "Notifications Disabled",
+                color = colors.text1,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp
+            )
+            Text(
+                "Enable permissions to receive weather alerts.",
+                color = colors.text2,
+                fontSize = 13.sp
+            )
+        }
+        TextButton(onClick = onRequestPermission) {
+            Text("ENABLE", color = Color(0xFFF59E0B), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -435,9 +597,11 @@ fun SubscribedAlertCardContent(alert: SubscribedAlert, onToggle: (Boolean) -> Un
 
     val textAlpha = if (alert.isActive) 1f else 0.5f
 
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .alpha(textAlpha)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(textAlpha)
+    ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -462,6 +626,16 @@ fun SubscribedAlertCardContent(alert: SubscribedAlert, onToggle: (Boolean) -> Un
                 NotificationType.SILENT -> Icons.Filled.NotificationsOff to "Silent Notification"
                 NotificationType.PUSH -> Icons.Filled.Notifications to "Push Notification"
                 NotificationType.SOUND -> Icons.Filled.NotificationsActive to "Push + Sound"
+                NotificationType.ALARM -> {
+                    val timeStr = if (alert.timeHour != null && alert.timeMinute != null) {
+                        val amPm = if (alert.timeHour >= 12) "PM" else "AM"
+                        val hour12 = if (alert.timeHour % 12 == 0) 12 else alert.timeHour % 12
+                        val minuteStr = alert.timeMinute.toString().padStart(2, '0')
+                        "Alarm at $hour12:$minuteStr $amPm"
+                    } else "Alarm"
+
+                    Icons.Filled.Alarm to timeStr
+                }
             }
             Icon(
                 icon,

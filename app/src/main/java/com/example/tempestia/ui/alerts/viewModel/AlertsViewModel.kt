@@ -5,12 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.OneTimeWorkRequest
-import androidx.work.PeriodicWorkRequest
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.tempestia.data.alerts.model.Alert
 import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.worker.AlarmScheduler
 import com.example.tempestia.worker.NotificationType
 import com.example.tempestia.worker.WeatherAlertWorker
 import kotlinx.coroutines.flow.*
@@ -34,7 +33,9 @@ class AlertsViewModel(
                     subtitle = entity.subtitle,
                     level = AlertLevel.valueOf(entity.level),
                     notificationType = NotificationType.valueOf(entity.notificationType),
-                    isActive = entity.isActive
+                    isActive = entity.isActive,
+                    timeHour = entity.timeHour,
+                    timeMinute = entity.timeMinute
                 )
             }
         }
@@ -54,7 +55,7 @@ class AlertsViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), baseTemplates)
 
-    fun addAlert(template: AlertItem, notifType: NotificationType) {
+    fun addAlert(template: AlertItem, notifType: NotificationType, hour: Int? = null, minute: Int? = null) {
         viewModelScope.launch {
             val newEntity = Alert(
                 id = UUID.randomUUID().toString(),
@@ -62,24 +63,47 @@ class AlertsViewModel(
                 subtitle = template.subtitle,
                 level = template.level.name,
                 notificationType = notifType.name,
-                isActive = true
+                isActive = true,
+                timeHour = hour,
+                timeMinute = minute
             )
             repository.insertAlert(newEntity)
             scheduleWeatherWorker()
         }
     }
 
-    fun updateAlert(alert: SubscribedAlert, newType: NotificationType? = null, isActive: Boolean? = null) {
+    fun updateAlert(
+        alert: SubscribedAlert,
+        newType: NotificationType? = null,
+        isActive: Boolean? = null,
+        hour: Int? = null,
+        minute: Int? = null,
+        context: Context
+    ) {
         viewModelScope.launch {
+            val finalType = newType ?: alert.notificationType
+            val finalHour = hour ?: alert.timeHour
+            val finalMinute = minute ?: alert.timeMinute
+            val finalActive = isActive ?: alert.isActive
+
             val updatedEntity = Alert(
                 id = alert.id,
                 title = alert.title,
                 subtitle = alert.subtitle,
                 level = alert.level.name,
-                notificationType = (newType ?: alert.notificationType).name,
-                isActive = isActive ?: alert.isActive
+                notificationType = finalType.name,
+                isActive = finalActive,
+                timeHour = finalHour,
+                timeMinute = finalMinute
             )
             repository.insertAlert(updatedEntity)
+
+            // --- THE SCHEDULER LOGIC ---
+            if (finalActive && finalType == NotificationType.ALARM && finalHour != null && finalMinute != null) {
+                AlarmScheduler.scheduleAlarm(context, alert.id, alert.title, finalHour, finalMinute)
+            } else {
+                AlarmScheduler.cancelAlarm(context, alert.id)
+            }
         }
     }
 

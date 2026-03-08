@@ -27,21 +27,43 @@ class WeatherAlertWorker(
             val response = repository.getWeather(location.first, location.second, BuildConfig.WEATHER_API_KEY)
             val weather = response.body() ?: return Result.success()
 
-            val activeAlerts = repository.getSubscribedAlerts().firstOrNull()?.filter { it.isActive } ?: emptyList()
+            val prefs = applicationContext.getSharedPreferences("TempestiaAlerts", Context.MODE_PRIVATE)
 
-            for (alert in activeAlerts) {
+            if (!weather.alerts.isNullOrEmpty()) {
+                for (apiAlert in weather.alerts) {
+                    val alertId = "${apiAlert.event}_${apiAlert.start}"
+
+                    val alreadyNotified = prefs.getBoolean(alertId, false)
+
+                    if (!alreadyNotified) {
+                        val shortDesc = if (apiAlert.description.length > 100) {
+                            apiAlert.description.take(100) + "..."
+                        } else {
+                            apiAlert.description
+                        }
+
+                        showNotification(
+                            title = "⚠️ ${apiAlert.event}",
+                            message = shortDesc,
+                            type = NotificationType.SOUND
+                        )
+
+                        prefs.edit().putBoolean(alertId, true).apply()
+                    }
+                }
+            }
+
+            val activeCustomAlerts = repository.getSubscribedAlerts().firstOrNull()?.filter { it.isActive } ?: emptyList()
+
+            for (alert in activeCustomAlerts) {
                 val notifType = NotificationType.valueOf(alert.notificationType)
+
+                if (notifType == NotificationType.ALARM) continue
 
                 when (alert.title) {
                     "Rain Reminder" -> {
                         if (weather.current.weather.any { it.description.contains("rain", true) }) {
                             showNotification("Rain Expected! 🌧️", alert.subtitle, notifType)
-                        }
-                    }
-
-                    "Severe Thunderstorm" -> {
-                        if (weather.current.weather.any { it.description.contains("thunderstorm", true) }) {
-                            showNotification("Severe Thunderstorm ⛈️", alert.subtitle, notifType)
                         }
                     }
 
@@ -52,14 +74,23 @@ class WeatherAlertWorker(
                     }
 
                     "Morning Summary" -> {
-                        val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
-                        if (currentHour == 7) {
+                        val calendar = java.util.Calendar.getInstance()
+                        val currentHour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
+                        val currentDayOfYear = calendar.get(java.util.Calendar.DAY_OF_YEAR)
+
+                        val lastSentDay = prefs.getInt("LastMorningSummaryDay", -1)
+
+                        if (currentHour in 7..11 && currentDayOfYear != lastSentDay) {
+
                             val condition = weather.current.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() } ?: "Clear"
+
                             showNotification(
                                 "Good Morning! 🌅",
                                 "It's ${weather.current.temp.toInt()}°C and $condition today.",
                                 notifType
                             )
+
+                            prefs.edit().putInt("LastMorningSummaryDay", currentDayOfYear).apply()
                         }
                     }
                 }
@@ -86,6 +117,7 @@ class WeatherAlertWorker(
                 NotificationType.SILENT -> NotificationManager.IMPORTANCE_LOW     // No sound, no popup
                 NotificationType.PUSH -> NotificationManager.IMPORTANCE_DEFAULT   // Standard popup
                 NotificationType.SOUND -> NotificationManager.IMPORTANCE_HIGH     // Popup + Sound
+                NotificationType.ALARM -> NotificationManager.IMPORTANCE_NONE
             }
             val channel = NotificationChannel(channelId, "Weather Alerts", importance)
             manager.createNotificationChannel(channel)
@@ -112,6 +144,7 @@ class WeatherAlertWorker(
                     NotificationType.SILENT -> NotificationCompat.PRIORITY_LOW
                     NotificationType.PUSH -> NotificationCompat.PRIORITY_DEFAULT
                     NotificationType.SOUND -> NotificationCompat.PRIORITY_HIGH
+                    NotificationType.ALARM -> NotificationCompat.PRIORITY_HIGH
                 }
             ).setContentIntent(pendingIntent)
             .setAutoCancel(true)
