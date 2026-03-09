@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,6 +40,7 @@ import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.ui.settings.viewModel.SettingsViewModel
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.example.tempestia.R
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Unit = {}) {
@@ -50,11 +52,13 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
     val themeMode by viewModel.themeModeFlow.collectAsState(initial = "System")
 
     var locationMethod by remember { mutableStateOf("GPS") }
-    val locationName by viewModel.locationNameFlow.collectAsState(initial = "Locating...")
+    val locationName by viewModel.locationNameFlow.collectAsState(initial = context.getString(R.string.locating))
 
     var showMap by remember { mutableStateOf(false) }
     var isFetchingLocation by remember { mutableStateOf(false) }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    val currentLanguage by viewModel.languageFlow.collectAsState(initial = "en")
 
     @SuppressLint("MissingPermission")
     fun fetchLocation() {
@@ -66,17 +70,17 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                     viewModel.saveLocation(location.latitude, location.longitude)
                     Toast.makeText(
                         context,
-                        "GPS Location updated successfully!",
+                        context.getString(R.string.toast_gps_success),
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
-                    Toast.makeText(context, "Could not lock GPS. Try the map.", Toast.LENGTH_SHORT)
+                    Toast.makeText(context, context.getString(R.string.toast_gps_failed), Toast.LENGTH_SHORT)
                         .show()
                 }
             }
             .addOnFailureListener {
                 isFetchingLocation = false
-                Toast.makeText(context, "Failed to get location. Try the map.", Toast.LENGTH_SHORT)
+                Toast.makeText(context, context.getString(R.string.toast_loc_failed), Toast.LENGTH_SHORT)
                     .show()
             }
     }
@@ -87,7 +91,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
             val hasLoc = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
                     permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
             if (hasLoc) fetchLocation()
-            else Toast.makeText(context, "Location permission denied.", Toast.LENGTH_SHORT).show()
+            else Toast.makeText(context, context.getString(R.string.toast_loc_denied), Toast.LENGTH_SHORT).show()
         }
     )
 
@@ -125,7 +129,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                     locationMethod = "Map"
                     Toast.makeText(
                         context,
-                        "Map Location updated successfully!",
+                        context.getString(R.string.toast_map_success),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -148,17 +152,16 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
             ) {
                 Spacer(modifier = Modifier.height(48.dp))
                 Text(
-                    text = "Settings",
+                    text = stringResource(R.string.settings_title),
                     color = colors.text1,
                     fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 24.dp)
+                    fontWeight = FontWeight.Bold
                 )
 
                 Spacer(modifier = Modifier.height(28.dp))
 
                 Text(
-                    text = "LOCATION",
+                    text = stringResource(R.string.location_header),
                     color = colors.text3,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -169,14 +172,14 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                 SettingsGroup {
                     SettingsRow(
                         icon = Icons.Filled.MyLocation,
-                        title = "Location Method",
+                        title = stringResource(R.string.location_method),
                         trailingContent = {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                SettingsChip("GPS", locationMethod == "GPS") {
+                                SettingsChip(stringResource(R.string.gps), locationMethod == "GPS") {
                                     locationMethod = "GPS"
                                     requestLocationAndFetch()
                                 }
-                                SettingsChip("Manual Map", locationMethod == "Map") {
+                                SettingsChip(stringResource(R.string.manual_map), locationMethod == "Map") {
                                     showMap = true
                                 }
                             }
@@ -187,12 +190,12 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
 
                     SettingsRow(
                         icon = Icons.Filled.Map,
-                        title = "Current Location",
-                        subtitle = if (isFetchingLocation) "Updating GPS..." else locationName,
+                        title = stringResource(R.string.current_location),
+                        subtitle = if (isFetchingLocation) stringResource(R.string.locating) else locationName,
                         trailingContent = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    "Change",
+                                    stringResource(R.string.change_btn),
                                     color = colors.text2,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold
@@ -219,7 +222,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                 Spacer(modifier = Modifier.height(28.dp))
 
                 Text(
-                    text = "PREFERENCES",
+                    text = stringResource(R.string.preferences_header),
                     color = colors.text3,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -230,8 +233,8 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                 SettingsGroup {
                     SettingsRow(
                         icon = Icons.Filled.Thermostat,
-                        title = "Temperature Unit",
-                        subtitle = "Used for all forecasts",
+                        title = stringResource(R.string.temperature_unit),
+                        subtitle = stringResource(R.string.temperature_desc),
                         trailingContent = {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 SettingsChip("°C", isCelsius) { viewModel.setCelsius(true) }
@@ -244,8 +247,8 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
 
                     SettingsRow(
                         icon = Icons.Filled.AccessTime,
-                        title = "Time Format",
-                        subtitle = "12-hour or 24-hour clock",
+                        title = stringResource(R.string.time_format),
+                        subtitle = stringResource(R.string.time_desc),
                         trailingContent = {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 SettingsChip("12h", !is24Hour) { viewModel.set24Hour(false) }
@@ -258,7 +261,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                 Spacer(modifier = Modifier.height(28.dp))
 
                 Text(
-                    text = "APPEARANCE",
+                    text = stringResource(R.string.appearance_header),
                     color = colors.text3,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -269,8 +272,8 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                 SettingsGroup {
                     SettingsRow(
                         icon = Icons.Filled.Palette,
-                        title = "App Theme",
-                        subtitle = "Choose your aesthetic",
+                        title = stringResource(R.string.app_theme),
+                        subtitle = stringResource(R.string.theme_desc),
                         trailingContent = {
                             Column(
                                 modifier = Modifier.width(160.dp),
@@ -280,10 +283,36 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    SettingsChip("Light", themeMode == "Light", Modifier.weight(1f)) { viewModel.setThemeMode("Light") }
-                                    SettingsChip("Dark", themeMode == "Dark", Modifier.weight(1f)) { viewModel.setThemeMode("Dark") }
+                                    SettingsChip(
+                                        stringResource(R.string.light_theme),
+                                        themeMode == "Light",
+                                        Modifier.weight(1f)
+                                    ) { viewModel.setThemeMode("Light") }
+                                    SettingsChip(
+                                        stringResource(R.string.dark_theme),
+                                        themeMode == "Dark",
+                                        Modifier.weight(1f)
+                                    ) { viewModel.setThemeMode("Dark") }
                                 }
-                                SettingsChip("System", themeMode == "System", Modifier.fillMaxWidth()) { viewModel.setThemeMode("System") }
+                                SettingsChip(
+                                    stringResource(R.string.system_theme),
+                                    themeMode == "System",
+                                    Modifier.fillMaxWidth()
+                                ) { viewModel.setThemeMode("System") }
+                            }
+                        }
+                    )
+
+                    HorizontalDivider(color = colors.glassBorder.copy(alpha = 0.5f))
+
+                    SettingsRow(
+                        icon = Icons.Filled.Language,
+                        title = stringResource(R.string.language),
+                        subtitle = stringResource(R.string.language_desc),
+                        trailingContent = {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                SettingsChip("EN", currentLanguage == "en") { viewModel.setLanguage("en") }
+                                SettingsChip("AR", currentLanguage == "ar") { viewModel.setLanguage("ar") }
                             }
                         }
                     )
@@ -293,7 +322,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
             }
 
             Text(
-                text = "Tempestia v1.0.0\nDesigned by Thaowpsta Saiid",
+                text = stringResource(R.string.app_footer),
                 color = colors.text3,
                 fontSize = 12.sp,
                 letterSpacing = 1.5.sp,
@@ -351,7 +380,6 @@ fun SettingsRow(
         Spacer(modifier = Modifier.width(14.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            // maxLines = 1 ensures it stays on a single line!
             Text(
                 text = title,
                 color = colors.text1,

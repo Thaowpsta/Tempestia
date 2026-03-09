@@ -18,10 +18,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tempestia.R
 import com.example.tempestia.theme.TempestiaTheme
 import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.DarkTempestiaColors
@@ -50,8 +52,8 @@ class AlarmActivity : ComponentActivity() {
             notificationManager.cancel(notificationId)
         }
 
-        val title = intent.getStringExtra("ALARM_TITLE") ?: "Weather Alarm"
-        val message = intent.getStringExtra("ALARM_MESSAGE") ?: "Time to wake up!"
+        val title = intent.getStringExtra("ALARM_TITLE") ?: getString(R.string.weather_alarm_default)
+        val message = intent.getStringExtra("ALARM_MESSAGE") ?: getString(R.string.time_to_wake_up)
         val alertId = intent.getStringExtra("ALERT_ID") ?: "unknown_id"
 
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
@@ -137,7 +139,7 @@ class AlarmActivity : ComponentActivity() {
                                         )
                                         android.widget.Toast.makeText(
                                             applicationContext,
-                                            "Snoozed for 2 minutes",
+                                            getString(R.string.snoozed_msg),
                                             android.widget.Toast.LENGTH_SHORT
                                         ).show()
 
@@ -149,7 +151,7 @@ class AlarmActivity : ComponentActivity() {
                                         .height(60.dp)
                                 ) {
                                     Text(
-                                        "SNOOZE",
+                                        stringResource(R.string.snooze_btn),
                                         color = Color.White,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
@@ -172,7 +174,7 @@ class AlarmActivity : ComponentActivity() {
                                         .height(60.dp)
                                 ) {
                                     Text(
-                                        "DISMISS",
+                                        stringResource(R.string.dismiss_btn),
                                         color = Color.White,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold

@@ -26,6 +26,8 @@ class WeatherRepository(private val context: Context) {
     val is24HourFlow = onboardingLocalDatasource.is24HourFlow
     val themeModeFlow = onboardingLocalDatasource.themeModeFlow
 
+    val languageFlow = onboardingLocalDatasource.languageFlow
+
     suspend fun getPreciseLocationName(lat: Double, lon: Double): String? {
         return withContext(Dispatchers.IO) {
             try {
@@ -58,7 +60,7 @@ class WeatherRepository(private val context: Context) {
     fun getFavoriteCities(): Flow<List<FavoriteCity>> = FavoriteslocalDatasource.getAllFavorites()
     suspend fun insertFavorite(city: FavoriteCity) = FavoriteslocalDatasource.insertFavorite(city)
     suspend fun deleteFavorite(city: FavoriteCity) = FavoriteslocalDatasource.deleteFavorite(city)
-
+    suspend fun setCityAsCurrent(city: FavoriteCity) = FavoriteslocalDatasource.setCityAsCurrent(city)
     fun getSubscribedAlerts(): Flow<List<Alert>> = alertsLocalDataSource.getAllAlerts()
     suspend fun insertAlert(alert: Alert) = alertsLocalDataSource.insertAlert(alert)
     suspend fun deleteAlert(id: String) = alertsLocalDataSource.deleteAlert(id)
@@ -66,4 +68,6 @@ class WeatherRepository(private val context: Context) {
     suspend fun saveIsCelsius(isCelsius: Boolean) = onboardingLocalDatasource.saveIsCelsius(isCelsius)
     suspend fun saveIs24Hour(is24Hour: Boolean) = onboardingLocalDatasource.saveIs24Hour(is24Hour)
     suspend fun saveThemeMode(themeMode: String) = onboardingLocalDatasource.saveThemeMode(themeMode)
+
+    suspend fun saveLanguage(language: String) = onboardingLocalDatasource.saveLanguage(language)
 }

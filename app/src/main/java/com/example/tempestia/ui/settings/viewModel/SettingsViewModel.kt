@@ -3,6 +3,7 @@ package com.example.tempestia.ui.settings.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.tempestia.data.favorites.model.FavoriteCity
 import com.example.tempestia.repository.WeatherRepository
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -12,7 +13,7 @@ class SettingsViewModel(private val repository: WeatherRepository) : ViewModel()
     val isCelsiusFlow = repository.isCelsiusFlow
     val is24HourFlow = repository.is24HourFlow
     val themeModeFlow = repository.themeModeFlow
-
+    val languageFlow = repository.languageFlow
     val locationNameFlow = repository.locationFlow.map { loc ->
         if (loc != null) {
             repository.getPreciseLocationName(loc.first, loc.second) ?: "Unknown Location"
@@ -34,7 +35,22 @@ class SettingsViewModel(private val repository: WeatherRepository) : ViewModel()
     }
 
     fun saveLocation(lat: Double, lng: Double) {
-        viewModelScope.launch { repository.saveLocation(lat, lng) }
+        viewModelScope.launch {
+            repository.saveLocation(lat, lng)
+
+            val cityName = repository.getPreciseLocationName(lat, lng) ?: "Unknown Location"
+            val newFavorite = FavoriteCity(
+                cityName = cityName,
+                lat = lat,
+                lon = lng,
+                isCurrentLocation = true
+            )
+            repository.setCityAsCurrent(newFavorite)
+        }
+    }
+
+    fun setLanguage(language: String) {
+        viewModelScope.launch { repository.saveLanguage(language) }
     }
 }
 

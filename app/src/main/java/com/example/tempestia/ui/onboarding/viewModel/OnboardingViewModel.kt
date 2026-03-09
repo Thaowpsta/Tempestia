@@ -3,6 +3,7 @@ package com.example.tempestia.ui.onboarding.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.tempestia.data.favorites.model.FavoriteCity
 import com.example.tempestia.repository.WeatherRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -18,9 +19,18 @@ class OnboardingViewModel(private val repository: WeatherRepository) : ViewModel
         }
     }
 
-    fun saveLocation(lat: Double, lng: Double) {
+    fun saveLocation(lat: Double, lng: Double, knownCityName: String? = null) {
         viewModelScope.launch {
             repository.saveLocation(lat, lng)
+
+            val cityName = knownCityName ?: repository.getPreciseLocationName(lat, lng) ?: "Unknown Location"
+            val newFavorite = FavoriteCity(
+                cityName = cityName,
+                lat = lat,
+                lon = lng,
+                isCurrentLocation = true
+            )
+            repository.setCityAsCurrent(newFavorite)
         }
     }
 }

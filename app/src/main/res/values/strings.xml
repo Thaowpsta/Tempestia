@@ -1,3 +1,181 @@
 <resources>
     <string name="app_name">Tempestia</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_alerts">Alerts</string>
+    <string name="nav_settings">Settings</string>
+
+    <string name="welcome_title">Welcome to Tempestia</string>
+    <string name="welcome_subtitle">Your personal weather companion.</string>
+    <string name="enable_gps">Enable GPS Location</string>
+    <string name="select_map">Select on Map</string>
+    <string name="please_wait">Please wait...</string>
+    <string name="drag_map_instruction">Drag the map to position the pin exactly where you want to track the weather.</string>
+    <string name="updating_location">Updating location...</string>
+    <string name="unknown_location">Unknown Location</string>
+    <string name="set_custom_location">Set Custom Location</string>
+    <string name="confirm_location">Confirm Location</string>
+
+    <string name="feels_like">FEELS LIKE</string>
+    <string name="hourly_forecast">HOURLY FORECAST</string>
+    <string name="six_day_forecast">6-DAY FORECAST</string>
+    <string name="atmospheric_details">ATMOSPHERIC DETAILS</string>
+    <string name="failed_to_load">Failed to load weather</string>
+    <string name="visibility">VISIBILITY</string>
+    <string name="pressure">PRESSURE</string>
+    <string name="sunrise">SUNRISE</string>
+    <string name="sunset">SUNSET</string>
+
+    <string name="notification_settings">Notification Settings</string>
+    <string name="notify_prompt">How would you like to be notified for \'%s\'?</string>
+    <string name="silent_notif">Silent (No Popup)</string>
+    <string name="push_notif">Push Notification</string>
+    <string name="sound_notif">Push + Loud Sound</string>
+    <string name="alarm_notif">Full-Screen Alarm</string>
+    <string name="no_alerts_desc">Click the + button below to subscribe\nto weather warnings and summaries.</string>
+    <string name="subscribe_alert">Subscribe to Alert</string>
+    <string name="all_alerts_subscribed">You are subscribed to all available alerts!</string>
+
+    <string name="local_weather_alerts">Local Weather Alerts</string>
+    <string name="enable_perms_desc">Enable permissions so Tempestia can track storms in your exact area and send critical alerts.</string>
+    <string name="location_access">Location Access</string>
+    <string name="location_access_desc">To provide accurate local weather.</string>
+    <string name="push_notifications">Push Notifications</string>
+    <string name="push_notifications_desc">To alert you of incoming storms.</string>
+    <string name="enable_permissions">Enable Permissions</string>
+    <string name="getting_location">Getting Location...</string>
+    <string name="use_map_instead">Use map selection instead</string>
+    <string name="app_tagline">BECAUSE NATURE NEVER WARNS TWICE</string>
+    <string name="begin_journey">Begin the Journey →</string>
+    <string name="skip">Skip</string>
+    <string name="get_started">Get Started →</string>
+    <string name="next">Next →</string>
+    <string name="slide1_title">Accurate Forecasts</string>
+    <string name="slide1_desc">Track storms, monitor radar, and get up-to-the-minute weather alerts in a beautifully designed interface.</string>
+    <string name="slide2_title">Live Radar</string>
+    <string name="slide2_desc">Visualize incoming precipitation and severe weather cells in real-time on our interactive map.</string>
+    <string name="slide3_title">Severe Alerts</string>
+    <string name="slide3_desc">Stay ahead of danger with instant push notifications for lightning, hail, and extreme conditions.</string>
+
+    <string name="today">Today</string>
+    <string name="next_5_days">Next 5 Days</string>
+    <string name="wind">Wind</string>
+    <string name="humidity">Humidity</string>
+    <string name="uv">UV</string>
+    <string name="loading">Loading...</string>
+    <string name="km_h">%d km/h</string>
+    <string name="percent">%d%%</string>
+    <string name="search_saved">Search saved locations...</string>
+    <string name="saved_locations_count">SAVED LOCATIONS • %d</string>
+    <string name="current_badge">CURRENT</string>
+    <string name="add_location_title">Add Location</string>
+    <string name="add_location_desc">Do you want to add %s to your saved locations?</string>
+    <string name="add_city_btn">Add City</string>
+    <string name="cancel_btn">Cancel</string>
+    <string name="remove_location_title">Remove Location</string>
+    <string name="remove_location_desc">Are you sure you want to remove %s?</string>
+    <string name="remove_btn">Remove</string>
+    <string name="add_new_city_title">Add New City</string>
+    <string name="search_openweathermap">Search OpenWeatherMap...</string>
+
+    <string name="weather_alarm_default">Weather Alarm</string>
+    <string name="time_to_wake_up">Time to wake up!</string>
+    <string name="snoozed_msg">Snoozed for 2 minutes</string>
+    <string name="snooze_btn">SNOOZE</string>
+    <string name="dismiss_btn">DISMISS</string>
+
+    <string name="add_alert_title">Add Alert</string>
+    <string name="notifications_disabled">Notifications Disabled</string>
+    <string name="enable_perms_alerts">Enable permissions to receive weather alerts.</string>
+    <string name="enable_btn">ENABLE</string>
+    <string name="no_active_alerts_title">No active alerts</string>
+    <string name="silent_notif_type">Silent Notification</string>
+    <string name="sound_notif_type">Push + Sound</string>
+    <string name="alarm_at_time">Alarm at %1$d:%2$s %3$s</string>
+    <string name="alarm_default">Alarm</string>
+    <string name="display_over_apps_prompt">Please allow \'Display over other apps\' to force the alarm on screen!</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
+
+    <string name="unknown">Unknown</string>
+    <string name="dry_air">Dry air</string>
+    <string name="comfortable">Comfortable</string>
+    <string name="slightly_humid">Slightly humid</string>
+    <string name="very_humid">Very humid</string>
+    <string name="calm_conditions">Calm conditions</string>
+    <string name="light_breeze">Light breeze</string>
+    <string name="moderate_breeze">Moderate breeze</string>
+    <string name="strong_wind">Strong wind</string>
+    <string name="gale_force">Gale force</string>
+    <string name="perfect_clear_view">Perfect clear view</string>
+    <string name="reduced_visibility">Reduced visibility</string>
+    <string name="high_pressure">High pressure</string>
+    <string name="low_pressure">Low pressure</string>
+    <string name="normal_pressure">Normal pressure</string>
+    <string name="morning_light">Morning light</string>
+    <string name="evening_dusk">Evening dusk</string>
+
+    <string name="toast_gps_signal_lost">Could not get GPS signal. Please use map.</string>
+    <string name="toast_location_failed">Failed to get location. Please use map.</string>
+    <string name="toast_location_required">Location required. Please use Map.</string>
+
+    <string name="toast_gps_success">GPS Location updated successfully!</string>
+    <string name="toast_gps_failed">Could not lock GPS. Try the map.</string>
+    <string name="toast_loc_failed">Failed to get location. Try the map.</string>
+    <string name="toast_loc_denied">Location permission denied.</string>
+    <string name="toast_map_success">Map Location updated successfully!</string>
+
+    <string name="alarm_morning_summary_msg">Good morning! It\'s %1$d°C and %2$s today.</string>
+    <string name="alarm_rain_msg">Wake up! Rain is expected today. Grab an umbrella!</string>
+    <string name="alarm_heat_msg">Extreme Heat Warning: %1$d°C</string>
+    <string name="alarm_channel_name">Alarms</string>
+    <string name="condition_clear">Clear</string>
+
+    <string name="alert_title_morning">Morning Summary</string>
+    <string name="alert_title_rain">Rain Reminder</string>
+    <string name="alert_title_heat">Extreme Heat</string>
+    <string name="alert_desc_morning">Daily morning weather update</string>
+    <string name="alert_desc_rain">Alerts you when rain is expected</string>
+    <string name="alert_desc_heat">Alerts you when temps exceed 40°C</string>
+
+    <string name="weather_alerts_title">WEATHER ALERTS</string>
+    <string name="active_monitoring">Active monitoring</string>
+    <string name="no_active_alerts">No active alerts for your current location.</string>
+    <string name="add_alert">Add Alert</string>
+    <string name="save_alert">Save Alert</string>
+    <string name="start_time">Start Time</string>
+    <string name="end_time">End Time</string>
+    <string name="alert_level">Alert Level</string>
+
+    <string name="worker_rain_title">Rain Expected! 🌧️</string>
+    <string name="worker_heat_title">Extreme Heat Warning 🌡️</string>
+    <string name="worker_heat_msg">It is currently %1$d°C.</string>
+    <string name="worker_morning_title">Good Morning! 🌅</string>
+    <string name="worker_morning_msg">It\'s %1$d°C and %2$s today.</string>
+    <string name="worker_channel_name">Weather Alerts</string>
+    <string name="worker_alert_prefix">⚠️ %s</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="location_header">LOCATION</string>
+    <string name="location_method">Location Method</string>
+    <string name="gps">GPS</string>
+    <string name="manual_map">Manual Map</string>
+    <string name="current_location">Current Location</string>
+    <string name="change_btn">Change</string>
+    <string name="locating">Locating...</string>
+    <string name="preferences_header">PREFERENCES</string>
+    <string name="language">Language</string>
+    <string name="language_desc">App interface language</string>
+    <string name="temperature_unit">Temperature Unit</string>
+    <string name="temperature_desc">Used for all forecasts</string>
+    <string name="time_format">Time Format</string>
+    <string name="time_desc">12-hour or 24-hour clock</string>
+    <string name="appearance_header">APPEARANCE</string>
+    <string name="app_theme">App Theme</string>
+    <string name="theme_desc">Choose your aesthetic</string>
+    <string name="light_theme">Light</string>
+    <string name="dark_theme">Dark</string>
+    <string name="system_theme">System</string>
+    <string name="app_footer">Tempestia v1.0.0\nDesigned by Thaowpsta Saiid</string>
 </resources>

@@ -10,5 +10,6 @@ data class FavoriteCity(
     val lat: Double,
     val lon: Double,
     val country: String? = null,
-    val addedAt: Long = System.currentTimeMillis()
+    val addedAt: Long = System.currentTimeMillis(),
+    val isCurrentLocation: Boolean = false
 )

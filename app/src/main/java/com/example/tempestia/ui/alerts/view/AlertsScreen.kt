@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Alarm
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
@@ -41,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.tempestia.R
 import com.example.tempestia.ui.alerts.viewModel.AlertLevel
 import com.example.tempestia.ui.alerts.viewModel.AlertItem
 import com.example.tempestia.ui.alerts.viewModel.AlertsViewModel
@@ -95,16 +96,16 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
             onDismissRequest = { alertToEdit = null },
             containerColor = colors.bgCard.copy(alpha = 1f),
             titleContentColor = colors.text1,
-            title = { Text("Notification Settings", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.notification_settings), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "How would you like to be notified for '${alertToEdit!!.title}'?",
+                        stringResource(R.string.notify_prompt, alertToEdit!!.title),
                         color = colors.text3
                     )
 
                     NotificationChoiceRow(
-                        "Silent (No Popup)",
+                        stringResource(R.string.silent_notif),
                         Icons.Filled.NotificationsOff,
                         isSelected = alertToEdit!!.notificationType == NotificationType.SILENT
                     ) {
@@ -116,7 +117,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         alertToEdit = null
                     }
                     NotificationChoiceRow(
-                        "Push Notification",
+                        stringResource(R.string.push_notif),
                         Icons.Filled.Notifications,
                         isSelected = alertToEdit!!.notificationType == NotificationType.PUSH
                     ) {
@@ -128,7 +129,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         alertToEdit = null
                     }
                     NotificationChoiceRow(
-                        "Push + Loud Sound",
+                        stringResource(R.string.sound_notif),
                         Icons.Filled.NotificationsActive,
                         isSelected = alertToEdit!!.notificationType == NotificationType.SOUND
                     ) {
@@ -141,7 +142,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                     }
 
                     NotificationChoiceRow(
-                        "Full-Screen Alarm",
+                        stringResource(R.string.alarm_notif),
                         Icons.Filled.Alarm,
                         isUrgent = true,
                         isSelected = alertToEdit!!.notificationType == NotificationType.ALARM
@@ -164,7 +165,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                             if (!android.provider.Settings.canDrawOverlays(context)) {
                                 android.widget.Toast.makeText(
                                     context,
-                                    "Please allow 'Display over other apps' to force the alarm on screen!",
+                                    context.getString(R.string.display_over_apps_prompt),
                                     android.widget.Toast.LENGTH_LONG
                                 ).show()
                                 val intent = android.content.Intent(
@@ -199,7 +200,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { alertToEdit = null }) {
-                    Text("Cancel", color = colors.text3)
+                    Text(stringResource(R.string.cancel_btn), color = colors.text3)
                 }
             }
         )
@@ -219,26 +220,26 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
             onDismissRequest = { templateToAdd = null },
             containerColor = colors.bgCard.copy(alpha = 1f),
             titleContentColor = colors.text1,
-            title = { Text("Add Alert", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.add_alert_title), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "How would you like to be notified for '${templateToAdd!!.title}'?",
+                        stringResource(R.string.notify_prompt, templateToAdd!!.title),
                         color = colors.text3
                     )
 
-                    NotificationChoiceRow("Silent (No Popup)", Icons.Filled.NotificationsOff) {
+                    NotificationChoiceRow(stringResource(R.string.silent_notif), Icons.Filled.NotificationsOff) {
                         handleStandardAdd(NotificationType.SILENT)
                     }
-                    NotificationChoiceRow("Push Notification", Icons.Filled.Notifications) {
+                    NotificationChoiceRow(stringResource(R.string.push_notif), Icons.Filled.Notifications) {
                         handleStandardAdd(NotificationType.PUSH)
                     }
-                    NotificationChoiceRow("Push + Loud Sound", Icons.Filled.NotificationsActive) {
+                    NotificationChoiceRow(stringResource(R.string.sound_notif), Icons.Filled.NotificationsActive) {
                         handleStandardAdd(NotificationType.SOUND)
                     }
 
                     NotificationChoiceRow(
-                        "Full-Screen Alarm",
+                        stringResource(R.string.alarm_notif),
                         Icons.Filled.Alarm,
                         isUrgent = true
                     ) {
@@ -260,7 +261,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                             if (!android.provider.Settings.canDrawOverlays(context)) {
                                 android.widget.Toast.makeText(
                                     context,
-                                    "Please allow 'Display over other apps' to force the alarm on screen!",
+                                    context.getString(R.string.display_over_apps_prompt),
                                     android.widget.Toast.LENGTH_LONG
                                 ).show()
                                 val intent = android.content.Intent(
@@ -293,7 +294,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { templateToAdd = null }) {
-                    Text("Cancel", color = colors.text3)
+                    Text(stringResource(R.string.cancel_btn), color = colors.text3)
                 }
             }
         )
@@ -312,7 +313,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                 .padding(horizontal = 24.dp, vertical = 48.dp)
         ) {
             Text(
-                text = "Weather Alerts",
+                text = stringResource(R.string.weather_alerts_title),
                 color = colors.text1,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
@@ -346,14 +347,14 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            "No active alerts",
+                            stringResource(R.string.no_active_alerts_title),
                             color = colors.text1,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Click the + button below to subscribe\nto weather warnings and summaries.",
+                            stringResource(R.string.no_alerts_desc),
                             color = colors.text3,
                             textAlign = TextAlign.Center
                         )
@@ -394,7 +395,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
         ) {
             Icon(
                 Icons.Filled.Add,
-                contentDescription = "Add Alert",
+                contentDescription = stringResource(R.string.add_alert_title),
                 tint = Color.White,
                 modifier = Modifier.size(32.dp)
             )
@@ -415,7 +416,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         .padding(bottom = 48.dp)
                 ) {
                     Text(
-                        "Subscribe to Alert",
+                        stringResource(R.string.subscribe_alert),
                         color = colors.text1,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
@@ -424,7 +425,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
 
                     if (availableTemplates.isEmpty()) {
                         Text(
-                            "You are subscribed to all available alerts!",
+                            stringResource(R.string.all_alerts_subscribed),
                             color = colors.text3,
                             modifier = Modifier.padding(top = 16.dp)
                         )
@@ -466,19 +467,19 @@ fun PermissionWarningBanner(onRequestPermission: () -> Unit) {
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                "Notifications Disabled",
+                stringResource(R.string.notifications_disabled),
                 color = colors.text1,
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp
             )
             Text(
-                "Enable permissions to receive weather alerts.",
+                stringResource(R.string.enable_perms_alerts),
                 color = colors.text2,
                 fontSize = 13.sp
             )
         }
         TextButton(onClick = onRequestPermission) {
-            Text("ENABLE", color = Color(0xFFF59E0B), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.enable_btn), color = Color(0xFFF59E0B), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -578,7 +579,7 @@ fun TemplateRow(template: AlertItem, onClick: () -> Unit) {
         Spacer(modifier = Modifier.width(16.dp))
         Column {
             Text(
-                text = template.title,
+                text = getLocalizedAlertText(template.title),
                 color = colors.text1,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
@@ -707,16 +708,16 @@ fun SubscribedAlertCardContent(alert: SubscribedAlert, onToggle: (Boolean) -> Un
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             val (icon, typeText) = when (alert.notificationType) {
-                NotificationType.SILENT -> Icons.Filled.NotificationsOff to "Silent Notification"
-                NotificationType.PUSH -> Icons.Filled.Notifications to "Push Notification"
-                NotificationType.SOUND -> Icons.Filled.NotificationsActive to "Push + Sound"
+                NotificationType.SILENT -> Icons.Filled.NotificationsOff to stringResource(R.string.silent_notif_type)
+                NotificationType.PUSH -> Icons.Filled.Notifications to stringResource(R.string.push_notif)
+                NotificationType.SOUND -> Icons.Filled.NotificationsActive to stringResource(R.string.sound_notif_type)
                 NotificationType.ALARM -> {
                     val timeStr = if (alert.timeHour != null && alert.timeMinute != null) {
-                        val amPm = if (alert.timeHour >= 12) "PM" else "AM"
+                        val amPm = if (alert.timeHour >= 12) stringResource(R.string.pm) else stringResource(R.string.am)
                         val hour12 = if (alert.timeHour % 12 == 0) 12 else alert.timeHour % 12
                         val minuteStr = alert.timeMinute.toString().padStart(2, '0')
-                        "Alarm at $hour12:$minuteStr $amPm"
-                    } else "Alarm"
+                        stringResource(R.string.alarm_at_time, hour12, minuteStr, amPm)
+                    } else stringResource(R.string.alarm_default)
 
                     Icons.Filled.Alarm to timeStr
                 }
@@ -735,5 +736,18 @@ fun SubscribedAlertCardContent(alert: SubscribedAlert, onToggle: (Boolean) -> Un
                 fontWeight = FontWeight.Medium
             )
         }
+    }
+}
+
+@Composable
+fun getLocalizedAlertText(englishText: String): String {
+    return when (englishText) {
+        "Morning Summary" -> stringResource(R.string.alert_title_morning)
+        "Rain Reminder" -> stringResource(R.string.alert_title_rain)
+        "Extreme Heat" -> stringResource(R.string.alert_title_heat)
+        "Daily morning weather update" -> stringResource(R.string.alert_desc_morning)
+        "Alerts you when rain is expected" -> stringResource(R.string.alert_desc_rain)
+        "Alerts you when temps exceed 40°C" -> stringResource(R.string.alert_desc_heat)
+        else -> englishText
     }
 }

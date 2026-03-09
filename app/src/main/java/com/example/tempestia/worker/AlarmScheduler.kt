@@ -17,7 +17,7 @@ object AlarmScheduler {
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            alertId.hashCode(), // Unique ID so alarms don't overwrite each other
+            alertId.hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -43,7 +43,6 @@ object AlarmScheduler {
         }
     }
 
-    // 🚨 NEW: The Snooze Function!
     fun snoozeAlarm(context: Context, alertId: String, title: String, snoozeMinutes: Int = 2) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -59,7 +58,6 @@ object AlarmScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Calculate the exact time X minutes from right now
         val triggerTime = System.currentTimeMillis() + (snoozeMinutes * 60 * 1000)
 
         try {

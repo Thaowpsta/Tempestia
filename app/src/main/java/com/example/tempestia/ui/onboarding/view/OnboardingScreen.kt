@@ -14,7 +14,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme // Detects system theme
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -160,22 +161,19 @@ fun PermissionsScreen(
             .addOnSuccessListener { location ->
                 isFetchingLocation = false
                 if (location != null) {
-                    // Success! Pass coords to MainActivity to save & finish
                     onFinish(location.latitude, location.longitude)
                 } else {
-                    // Failed (Usually because GPS is physically turned off in quick settings)
-                    Toast.makeText(context, "Could not get GPS signal. Please use map.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.toast_gps_signal_lost), Toast.LENGTH_LONG).show()
                     onOpenMap()
                 }
             }
             .addOnFailureListener {
                 isFetchingLocation = false
-                Toast.makeText(context, "Failed to get location. Please use map.", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.toast_location_failed), Toast.LENGTH_LONG).show()
                 onOpenMap()
             }
     }
 
-    // Auto-fetch if permissions are already granted (like on an app reinstall!)
     LaunchedEffect(Unit) {
         val hasFineLocation = ContextCompat.checkSelfPermission(
             context, android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -197,10 +195,9 @@ fun PermissionsScreen(
                     permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] == true
 
             if (hasLoc) {
-                // If they clicked allow, fetch the GPS instantly!
                 fetchLocationAndFinish()
             } else {
-                Toast.makeText(context, "Location required. Please use Map.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.toast_location_required), Toast.LENGTH_SHORT).show()
                 onOpenMap()
             }
         }
@@ -231,10 +228,10 @@ fun PermissionsScreen(
                 .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Local Weather Alerts", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.text1)
+            Text(stringResource(R.string.local_weather_alerts), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.text1)
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Enable permissions so Tempestia can track storms in your exact area and send critical alerts.",
+                text = stringResource(R.string.enable_perms_desc),
                 fontSize = 14.sp,
                 color = colors.text3,
                 textAlign = TextAlign.Center,
@@ -243,15 +240,14 @@ fun PermissionsScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            PermissionRow(Icons.Filled.LocationOn, "Location Access", "To provide accurate local weather.")
+            PermissionRow(Icons.Filled.LocationOn, stringResource(R.string.location_access), stringResource(R.string.location_access_desc))
             Spacer(modifier = Modifier.height(12.dp))
-            PermissionRow(Icons.Filled.Notifications, "Push Notifications", "To alert you of incoming storms.")
+            PermissionRow(Icons.Filled.Notifications, stringResource(R.string.push_notifications), stringResource(R.string.push_notifications_desc))
 
             Spacer(modifier = Modifier.height(40.dp))
 
             PulsingButton(
-                // 🚨 NEW: Show loading text while searching for GPS
-                text = if (isFetchingLocation) "Getting Location..." else "Enable Permissions",
+                text = if (isFetchingLocation) stringResource(R.string.getting_location) else stringResource(R.string.enable_permissions),
                 onClick = {
                     if (!isFetchingLocation) {
                         val permissionsToRequest = mutableListOf(
@@ -271,7 +267,7 @@ fun PermissionsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Use map selection instead",
+                text = stringResource(R.string.use_map_instead),
                 color = colors.purpleBright,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -347,7 +343,7 @@ fun SplashScreen(onEnter: () -> Unit) {
         Spacer(modifier = Modifier.height(48.dp))
 
         Text(
-            text = "TEMPESTIA",
+            text = stringResource(R.string.app_name).uppercase(),
             style = TextStyle(
                 brush = Brush.linearGradient(
                     colors = listOf(colors.goldLight, colors.purpleCore, colors.text1),
@@ -361,7 +357,7 @@ fun SplashScreen(onEnter: () -> Unit) {
             )
         )
         Text(
-            text = "BECAUSE NATURE NEVER WARNS TWICE",
+            text = stringResource(R.string.app_tagline),
             color = colors.text3,
             fontSize = 14.sp,
             fontWeight = FontWeight.Light,
@@ -370,7 +366,7 @@ fun SplashScreen(onEnter: () -> Unit) {
             modifier = Modifier.padding(top = 8.dp, bottom = 60.dp)
         )
 
-        PulsingButton(text = "Begin the Journey →", onClick = onEnter)
+        PulsingButton(text = stringResource(R.string.begin_journey), onClick = onEnter)
     }
 }
 
@@ -381,9 +377,9 @@ fun FeaturesScreen(onSkip: () -> Unit, onNext: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
 
     val slides = listOf(
-        Triple("⛈️", "Accurate Forecasts", "Track storms, monitor radar, and get up-to-the-minute weather alerts in a beautifully designed interface."),
-        Triple("🗺", "Live Radar", "Visualize incoming precipitation and severe weather cells in real-time on our interactive map."),
-        Triple("🔔", "Severe Alerts", "Stay ahead of danger with instant push notifications for lightning, hail, and extreme conditions.")
+        Triple("⛈️", stringResource(R.string.slide1_title), stringResource(R.string.slide1_desc)),
+        Triple("🗺", stringResource(R.string.slide2_title), stringResource(R.string.slide2_desc)),
+        Triple("🔔", stringResource(R.string.slide3_title), stringResource(R.string.slide3_desc))
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -393,7 +389,7 @@ fun FeaturesScreen(onSkip: () -> Unit, onNext: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Skip",
+                text = stringResource(R.string.skip),
                 color = colors.text3,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -457,120 +453,13 @@ fun FeaturesScreen(onSkip: () -> Unit, onNext: () -> Unit) {
             }
 
             PulsingButton (
-                text = if (pagerState.currentPage == 2) "Get Started →" else "Next →",
+                text = if (pagerState.currentPage == 2) stringResource(R.string.get_started) else stringResource(R.string.next),
                 onClick =  {
                     if (pagerState.currentPage < 2) {
                         coroutineScope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                     } else {
                         onNext()
                     }
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun PermissionsScreen(onBack: () -> Unit, onFinish: () -> Unit, onOpenMap: () -> Unit) {
-    val colors = LocalTempestiaColors.current
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        val hasFineLocation = ContextCompat.checkSelfPermission(
-            context, android.Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        val hasCoarseLocation = ContextCompat.checkSelfPermission(
-            context, android.Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        var hasNotifications = true
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            hasNotifications = ContextCompat.checkSelfPermission(
-                context, android.Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        }
-
-        if ((hasFineLocation || hasCoarseLocation) && hasNotifications) {
-            onFinish()
-        }
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions(),
-        onResult = { _ ->
-            onFinish()
-        }
-    )
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = colors.text2,
-                modifier = Modifier.size(38.dp).background(colors.glass, CircleShape)
-                    .border(1.dp, colors.glassBorder, CircleShape)
-                    .padding(8.dp).clickable(onClick = onBack)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Column(
-            modifier = Modifier.fillMaxWidth()
-                .background(colors.bgCard, RoundedCornerShape(32.dp))
-                .border(1.dp, colors.glassBorder, RoundedCornerShape(32.dp))
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Local Weather Alerts", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.text1)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "Enable permissions so Tempestia can track storms in your exact area and send critical alerts.",
-                fontSize = 14.sp,
-                color = colors.text3,
-                textAlign = TextAlign.Center,
-                lineHeight = 20.sp
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            PermissionRow(Icons.Filled.LocationOn, "Location Access", "To provide accurate local weather.")
-            Spacer(modifier = Modifier.height(12.dp))
-            PermissionRow(Icons.Filled.Notifications, "Push Notifications", "To alert you of incoming storms.")
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            PulsingButton(
-                text = "Enable Permissions",
-                onClick = {
-                    val permissionsToRequest = mutableListOf(
-                        android.Manifest.permission.ACCESS_FINE_LOCATION,
-                        android.Manifest.permission.ACCESS_COARSE_LOCATION
-                    )
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
-                    }
-
-                    permissionLauncher.launch(permissionsToRequest.toTypedArray())
-                }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Use map selection instead",
-                color = colors.purpleBright,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable {
-                    onOpenMap()
                 }
             )
         }

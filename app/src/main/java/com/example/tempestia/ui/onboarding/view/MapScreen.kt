@@ -16,10 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tempestia.R
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
@@ -42,14 +44,14 @@ fun MapScreen(
     }
 
     var addressText by remember {
-        mutableStateOf("Drag the map to position the pin exactly where you want to track the weather.")
+        mutableStateOf(context.getString(R.string.drag_map_instruction))
     }
     var hasDragged by remember { mutableStateOf(false) }
 
     LaunchedEffect(cameraPositionState.isMoving) {
         if (cameraPositionState.isMoving) {
             hasDragged = true
-            addressText = "Updating location..."
+            addressText = context.getString(R.string.updating_location)
         } else if (hasDragged) {
             val target = cameraPositionState.position.target
             withContext(Dispatchers.IO) {
@@ -60,7 +62,7 @@ fun MapScreen(
                     val addresses = geocoder.getFromLocation(target.latitude, target.longitude, 1)
 
                     if (!addresses.isNullOrEmpty()) {
-                        addresses[0].getAddressLine(0) ?: "Unknown Location"
+                        addresses[0].getAddressLine(0) ?: context.getString(R.string.unknown_location)
                     } else {
                         String.format(Locale.US, "Lat: %.4f, Lng: %.4f", target.latitude, target.longitude)
                     }
@@ -112,7 +114,7 @@ fun MapScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Set Custom Location",
+                text = stringResource(R.string.set_custom_location),
                 color = colors.text1,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -131,7 +133,7 @@ fun MapScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             PulsingButton(
-                text = "Confirm Location",
+                text = stringResource(R.string.confirm_location),
                 onClick = {
                     val selectedLatLng = cameraPositionState.position.target
                     onLocationSelected(selectedLatLng.latitude, selectedLatLng.longitude)

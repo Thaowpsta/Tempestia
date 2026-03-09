@@ -17,4 +17,8 @@ class FavoritesLocalDatasource(context: Context) {
     suspend fun deleteFavorite(city: FavoriteCity) {
         favoriteCityDao.deleteFavorite(city)
     }
+
+    suspend fun setCityAsCurrent(city: FavoriteCity) {
+        favoriteCityDao.setCityAsCurrent(city)
+    }
 }

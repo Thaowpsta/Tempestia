@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tempestia</string>
+
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_favorites">المفضلة</string>
+    <string name="nav_alerts">التنبيهات</string>
+    <string name="nav_settings">الإعدادات</string>
+
+    <string name="welcome_title">مرحباً بك في تمبستيا</string>
+    <string name="welcome_subtitle">رفيقك الشخصي للطقس.</string>
+    <string name="enable_gps">تفعيل موقع GPS</string>
+    <string name="select_map">اختيار على الخريطة</string>
+    <string name="please_wait">يرجى الانتظار...</string>
+    <string name="drag_map_instruction">اسحب الخريطة لوضع الدبوس في المكان الذي تريد تتبع الطقس فيه بالضبط.</string>
+    <string name="updating_location">جاري تحديث الموقع...</string>
+    <string name="unknown_location">موقع غير معروف</string>
+    <string name="set_custom_location">تعيين موقع مخصص</string>
+    <string name="confirm_location">تأكيد الموقع</string>
+
+    <string name="feels_like">FEELS LIKE</string>
+    <string name="hourly_forecast">HOURLY FORECAST</string>
+    <string name="six_day_forecast">6-DAY FORECAST</string>
+    <string name="atmospheric_details">ATMOSPHERIC DETAILS</string>
+    <string name="failed_to_load">Failed to load weather</string>
+    <string name="visibility">VISIBILITY</string>
+    <string name="pressure">PRESSURE</string>
+    <string name="sunrise">SUNRISE</string>
+    <string name="sunset">SUNSET</string>
+
+    <string name="notification_settings">Notification Settings</string>
+    <string name="notify_prompt">How would you like to be notified for \'%s\'?</string>
+    <string name="silent_notif">Silent (No Popup)</string>
+    <string name="push_notif">Push Notification</string>
+    <string name="sound_notif">Push + Loud Sound</string>
+    <string name="alarm_notif">Full-Screen Alarm</string>
+    <string name="no_alerts_desc">Click the + button below to subscribe\nto weather warnings and summaries.</string>
+    <string name="subscribe_alert">Subscribe to Alert</string>
+    <string name="all_alerts_subscribed">You are subscribed to all available alerts!</string>
+
+    <string name="local_weather_alerts">Local Weather Alerts</string>
+    <string name="enable_perms_desc">Enable permissions so Tempestia can track storms in your exact area and send critical alerts.</string>
+    <string name="location_access">Location Access</string>
+    <string name="location_access_desc">To provide accurate local weather.</string>
+    <string name="push_notifications">Push Notifications</string>
+    <string name="push_notifications_desc">To alert you of incoming storms.</string>
+    <string name="enable_permissions">Enable Permissions</string>
+    <string name="getting_location">Getting Location...</string>
+    <string name="use_map_instead">Use map selection instead</string>
+    <string name="app_tagline">BECAUSE NATURE NEVER WARNS TWICE</string>
+    <string name="begin_journey">Begin the Journey →</string>
+    <string name="skip">Skip</string>
+    <string name="get_started">Get Started →</string>
+    <string name="next">Next →</string>
+    <string name="slide1_title">Accurate Forecasts</string>
+    <string name="slide1_desc">Track storms, monitor radar, and get up-to-the-minute weather alerts in a beautifully designed interface.</string>
+    <string name="slide2_title">Live Radar</string>
+    <string name="slide2_desc">Visualize incoming precipitation and severe weather cells in real-time on our interactive map.</string>
+    <string name="slide3_title">Severe Alerts</string>
+    <string name="slide3_desc">Stay ahead of danger with instant push notifications for lightning, hail, and extreme conditions.</string>
+
+    <string name="today">اليوم</string>
+    <string name="next_5_days">الـ 5 أيام القادمة</string>
+    <string name="wind">الرياح</string>
+    <string name="humidity">الرطوبة</string>
+    <string name="uv">الأشعة</string>
+    <string name="loading">جاري التحميل...</string>
+    <string name="km_h">%d كم/س</string>
+    <string name="percent">%d%%</string>
+
+    <string name="weather_alarm_default">منبه الطقس</string>
+    <string name="time_to_wake_up">حان وقت الاستيقاظ!</string>
+    <string name="snoozed_msg">تم الغفوة لمدة دقيقتين</string>
+    <string name="snooze_btn">غفوة</string>
+    <string name="dismiss_btn">إغلاق</string>
+
+    <string name="add_alert_title">إضافة تنبيه</string>
+    <string name="notifications_disabled">الإشعارات معطلة</string>
+    <string name="enable_perms_alerts">قم بتمكين الأذونات لتلقي تنبيهات الطقس.</string>
+    <string name="enable_btn">تمكين</string>
+    <string name="no_active_alerts_title">لا توجد تنبيهات نشطة</string>
+    <string name="silent_notif_type">إشعار صامت</string>
+    <string name="sound_notif_type">إشعار + صوت</string>
+    <string name="alarm_at_time">منبه الساعة %1$d:%2$s %3$s</string>
+    <string name="alarm_default">منبه</string>
+    <string name="display_over_apps_prompt">يرجى السماح بـ \'الظهور فوق التطبيقات الأخرى\' لفرض تشغيل المنبه على الشاشة!</string>
+    <string name="am">ص</string>
+    <string name="pm">م</string>
+
+    <string name="unknown">Unknown</string>
+    <string name="dry_air">Dry air</string>
+    <string name="comfortable">Comfortable</string>
+    <string name="slightly_humid">Slightly humid</string>
+    <string name="very_humid">Very humid</string>
+    <string name="calm_conditions">Calm conditions</string>
+    <string name="light_breeze">Light breeze</string>
+    <string name="moderate_breeze">Moderate breeze</string>
+    <string name="strong_wind">Strong wind</string>
+    <string name="gale_force">Gale force</string>
+    <string name="perfect_clear_view">Perfect clear view</string>
+    <string name="reduced_visibility">Reduced visibility</string>
+    <string name="high_pressure">High pressure</string>
+    <string name="low_pressure">Low pressure</string>
+    <string name="normal_pressure">Normal pressure</string>
+    <string name="morning_light">Morning light</string>
+    <string name="evening_dusk">Evening dusk</string>
+
+    <string name="toast_gps_signal_lost">تعذر الحصول على إشارة GPS. يرجى استخدام الخريطة.</string>
+    <string name="toast_location_failed">فشل في الحصول على الموقع. يرجى استخدام الخريطة.</string>
+    <string name="toast_location_required">الموقع مطلوب. يرجى استخدام الخريطة.</string>
+
+    <string name="toast_gps_success">تم تحديث موقع GPS بنجاح!</string>
+    <string name="toast_gps_failed">تعذر قفل GPS. جرب الخريطة.</string>
+    <string name="toast_loc_failed">فشل في الحصول على الموقع. جرب الخريطة.</string>
+    <string name="toast_loc_denied">تم رفض إذن الموقع.</string>
+    <string name="toast_map_success">تم تحديث موقع الخريطة بنجاح!</string>
+
+    <string name="alarm_morning_summary_msg">Good morning! It\'s %1$d°C and %2$s today.</string>
+    <string name="alarm_rain_msg">Wake up! Rain is expected today. Grab an umbrella!</string>
+    <string name="alarm_heat_msg">Extreme Heat Warning: %1$d°C</string>
+    <string name="alarm_channel_name">Alarms</string>
+    <string name="condition_clear">Clear</string>
+
+    <string name="worker_rain_title">من المتوقع هطول أمطار! 🌧️</string>
+    <string name="worker_heat_title">تحذير من حرارة شديدة 🌡️</string>
+    <string name="worker_heat_msg">درجة الحرارة حالياً %1$d°C.</string>
+    <string name="worker_morning_title">صباح الخير! 🌅</string>
+    <string name="worker_morning_msg">درجة الحرارة %1$d°C والطقس %2$s اليوم.</string>
+    <string name="worker_channel_name">تنبيهات الطقس</string>
+    <string name="worker_alert_prefix">⚠️ %s</string>
+
+    <string name="search_saved">ابحث في المواقع المحفوظة...</string>
+    <string name="saved_locations_count">المواقع المحفوظة • %d</string>
+    <string name="current_badge">الحالي</string>
+    <string name="add_location_title">إضافة موقع</string>
+    <string name="add_location_desc">هل تريد إضافة %s إلى مواقعك المحفوظة؟</string>
+    <string name="add_city_btn">إضافة مدينة</string>
+    <string name="cancel_btn">إلغاء</string>
+    <string name="remove_location_title">إزالة الموقع</string>
+    <string name="remove_location_desc">هل أنت متأكد أنك تريد إزالة %s؟</string>
+    <string name="remove_btn">إزالة</string>
+    <string name="add_new_city_title">إضافة مدينة جديدة</string>
+    <string name="search_openweathermap">ابحث في OpenWeatherMap...</string>
+
+    <string name="alert_title_morning">ملخص الصباح</string>
+    <string name="alert_title_rain">تذكير بالمطر</string>
+    <string name="alert_title_heat">حرارة شديدة</string>
+    <string name="alert_desc_morning">تحديث يومي لطقس الصباح</string>
+    <string name="alert_desc_rain">ينبهك عند توقع هطول أمطار</string>
+    <string name="alert_desc_heat">ينبهك عندما تتجاوز الحرارة 40 مئوية</string>
+
+    <string name="weather_alerts_title">تنبيهات الطقس</string>
+    <string name="active_monitoring">مراقبة نشطة</string>
+    <string name="no_active_alerts">لا توجد تنبيهات نشطة لموقعك الحالي.</string>
+    <string name="add_alert">إضافة تنبيه</string>
+    <string name="save_alert">حفظ التنبيه</string>
+    <string name="start_time">وقت البدء</string>
+    <string name="end_time">وقت الانتهاء</string>
+    <string name="alert_level">مستوى التنبيه</string>
+
+    <string name="settings_title">الإعدادات</string>
+    <string name="location_header">الموقع</string>
+    <string name="location_method">طريقة تحديد الموقع</string>
+    <string name="gps">GPS</string>
+    <string name="manual_map">الخريطة</string>
+    <string name="current_location">الموقع الحالي</string>
+    <string name="change_btn">تغيير</string>
+    <string name="locating">جاري التحديد...</string>
+    <string name="preferences_header">التفضيلات</string>
+    <string name="language">اللغة</string>
+    <string name="language_desc">لغة واجهة التطبيق</string>
+    <string name="temperature_unit">وحدة الحرارة</string>
+    <string name="temperature_desc">تُستخدم لجميع التوقعات</string>
+    <string name="time_format">تنسيق الوقت</string>
+    <string name="time_desc">نظام 12 ساعة أو 24 ساعة</string>
+    <string name="appearance_header">المظهر</string>
+    <string name="app_theme">سمة التطبيق</string>
+    <string name="theme_desc">اختر مظهر التطبيق</string>
+    <string name="light_theme">فاتح</string>
+    <string name="dark_theme">داكن</string>
+    <string name="system_theme">النظام</string>
+    <string name="app_footer">Tempestia v1.0.0\nتصميم ثاؤبستى سعيد</string>
+</resources>

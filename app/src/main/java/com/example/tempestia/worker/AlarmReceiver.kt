@@ -41,19 +41,19 @@ class AlarmReceiver : BroadcastReceiver() {
                         when (alertTitle) {
                             "Morning Summary" -> {
                                 shouldRing = true
-                                val condition = weather.current.weather.firstOrNull()?.description ?: "Clear"
-                                message = "Good morning! It's ${weather.current.temp.toInt()}°C and $condition today."
+                                val condition = weather.current.weather.firstOrNull()?.description ?: context.getString(R.string.condition_clear)
+                                message = context.getString(R.string.alarm_morning_summary_msg, weather.current.temp.toInt(), condition)
                             }
                             "Rain Reminder" -> {
                                 if (weather.current.weather.any { it.description.contains("rain", true) }) {
                                     shouldRing = true
-                                    message = "Wake up! Rain is expected today. Grab an umbrella!"
+                                    message = context.getString(R.string.alarm_rain_msg)
                                 }
                             }
                             "Extreme Heat" -> {
                                 if (weather.current.temp >= 40.0) {
                                     shouldRing = true
-                                    message = "Extreme Heat Warning: ${weather.current.temp.toInt()}°C"
+                                    message = context.getString(R.string.alarm_heat_msg, weather.current.temp.toInt())
                                 }
                             }
                         }
@@ -97,7 +97,8 @@ class AlarmReceiver : BroadcastReceiver() {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Alarms", NotificationManager.IMPORTANCE_HIGH)
+            val channelName = context.getString(R.string.alarm_channel_name)
+            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH)
             notificationManager.createNotificationChannel(channel)
         }
 

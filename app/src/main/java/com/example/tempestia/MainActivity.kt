@@ -1,7 +1,10 @@
 package com.example.tempestia
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivityResultRegistryOwner
+import androidx.activity.compose.LocalActivityResultRegistryOwner.provides
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.border
@@ -22,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tempestia.repository.WeatherRepository
 import com.example.tempestia.ui.favorites.view.FavoritesScreen
@@ -46,6 +48,11 @@ import com.example.tempestia.ui.alerts.viewModel.AlertsViewModelFactory
 import com.example.tempestia.ui.settings.view.SettingsScreen
 import com.example.tempestia.ui.settings.viewModel.SettingsViewModel
 import com.example.tempestia.ui.settings.viewModel.SettingsViewModelFactory
+import java.util.Locale
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -74,7 +81,23 @@ class MainActivity : ComponentActivity() {
                     else -> if (isSystemDark) DarkTempestiaColors else LightTempestiaColors
                 }
 
-                CompositionLocalProvider(LocalTempestiaColors provides colors) {
+                val language by repository.languageFlow.collectAsState(initial = "en")
+
+                val locale = Locale.Builder().setLanguage(language).build()
+                Locale.setDefault(locale)
+                val configuration = Configuration(LocalConfiguration.current)
+                configuration.setLocale(locale)
+                configuration.setLayoutDirection(locale)
+                val updatedContext = context.createConfigurationContext(configuration)
+
+                val registryOwner = LocalActivityResultRegistryOwner.current
+
+                CompositionLocalProvider(
+                    LocalTempestiaColors provides colors,
+                    LocalContext provides updatedContext,
+                    LocalLayoutDirection provides if (language == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr,
+                    LocalActivityResultRegistryOwner provides requireNotNull(registryOwner)
+                ) {
 
                     val onboardingViewModel: OnboardingViewModel = viewModel(
                         factory = OnboardingViewModelFactory(repository)
@@ -165,12 +188,12 @@ fun TempestiaApp(
                             icon = {
                                 Icon(
                                     imageVector = destination.icon,
-                                    contentDescription = destination.label
+                                    contentDescription = stringResource(id = destination.label)
                                 )
                             },
                             label = {
                                 Text(
-                                    text = destination.label,
+                                    text = stringResource(id = destination.label),
                                     fontWeight = if (isSelected) Bold else Normal
                                 )
                             },
@@ -211,7 +234,13 @@ fun TempestiaApp(
                     val favoritesViewModel: FavoritesViewModel = viewModel(
                         factory = FavoritesViewModelFactory(repository)
                     )
-                    FavoritesScreen(favoritesViewModel)
+                    FavoritesScreen(
+                        viewModel = favoritesViewModel,
+                        onCitySelected = { lat, lng, cityName ->
+                            onboardingViewModel.saveLocation(lat, lng, cityName)
+                            currentDestination = AppDestinations.HOME
+                        }
+                    )
                 }
 
                 AppDestinations.PROFILE -> {

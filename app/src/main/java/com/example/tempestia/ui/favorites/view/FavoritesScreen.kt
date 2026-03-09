@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +26,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import com.example.tempestia.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -40,7 +43,10 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoritesScreen(viewModel: FavoritesViewModel) {
+fun FavoritesScreen(
+    viewModel: FavoritesViewModel,
+    onCitySelected: (Double, Double, String) -> Unit = { _, _, _ -> }
+) {
     val colors = LocalTempestiaColors.current
 
     val favoriteWeather by viewModel.favoriteWeather.collectAsState()
@@ -60,8 +66,15 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
             containerColor = colors.bgCard.copy(alpha = 1f),
             titleContentColor = colors.text1,
             textContentColor = colors.text3,
-            title = { Text("Add Location") },
-            text = { Text("Do you want to add ${cityToConfirmAdd?.name} to your saved locations?") },
+            title = { Text(stringResource(R.string.add_location_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.add_location_desc,
+                        cityToConfirmAdd?.name ?: ""
+                    )
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     cityToConfirmAdd?.let { viewModel.addFavorite(it) }
@@ -69,13 +82,13 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
                     showAddSearchDialog = false
                     viewModel.clearApiSearch()
                 }) {
-                    Text("Add City", color = colors.purpleBright, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.add_city_btn), color = colors.purpleBright, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { cityToConfirmAdd = null }) {
                     Text(
-                        "Cancel",
+                        stringResource(R.string.cancel_btn),
                         color = colors.text3
                     )
                 }
@@ -89,20 +102,20 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
             containerColor = colors.bgCard.copy(alpha = 1f),
             titleContentColor = colors.text1,
             textContentColor = colors.text3,
-            title = { Text("Remove Location") },
-            text = { Text("Are you sure you want to remove ${cityToConfirmDelete?.cityName}?") },
+            title = { Text(stringResource(R.string.remove_location_title)) },
+            text = { Text(stringResource(R.string.remove_location_desc, cityToConfirmDelete?.cityName ?: "")) },
             confirmButton = {
                 TextButton(onClick = {
                     cityToConfirmDelete?.let { viewModel.removeCity(it) }
                     cityToConfirmDelete = null
                 }) {
-                    Text("Remove", color = Color(0xFFFF4B4B), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.remove_btn), color = Color(0xFFFF4B4B), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { cityToConfirmDelete = null }) {
                     Text(
-                        "Cancel",
+                        stringResource(R.string.cancel_btn),
                         color = colors.text3
                     )
                 }
@@ -110,11 +123,17 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(colors.bgDeep)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.bgDeep)
+    ) {
         AnimatedParticleBackground()
 
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 48.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 48.dp)
         ) {
             OutlinedTextField(
                 value = localSearchQuery,
@@ -124,7 +143,7 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
                     .clip(RoundedCornerShape(32.dp))
                     .background(colors.glass)
                     .border(1.dp, colors.glassBorder, RoundedCornerShape(32.dp)),
-                placeholder = { Text("Search saved locations...", color = colors.text3) },
+                placeholder = { Text(stringResource(R.string.search_saved), color = colors.text3) },
                 leadingIcon = {
                     Icon(
                         Icons.Filled.Search,
@@ -145,7 +164,7 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "SAVED LOCATIONS • ${filteredWeather.size}",
+                text = stringResource(R.string.saved_locations_count, filteredWeather.size),
                 color = colors.text3,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -161,7 +180,14 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
                 items(filteredWeather, key = { it.city.cityName }) { state ->
                     StableSwipeToDismissCard(
                         state = state,
-                        onDeleteRequest = { cityToConfirmDelete = state.city }
+                        onDeleteRequest = { cityToConfirmDelete = state.city },
+                        onClick = {
+                            onCitySelected(
+                                state.city.lat,
+                                state.city.lon,
+                                state.city.cityName
+                            )
+                        }
                     )
                 }
             }
@@ -208,7 +234,7 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
                     .padding(bottom = 64.dp)
             ) {
                 Text(
-                    "Add New City",
+                    stringResource(R.string.add_new_city_title),
                     color = colors.text1,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
@@ -218,9 +244,11 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
                 OutlinedTextField(
                     value = apiSearchQuery,
                     onValueChange = { viewModel.onApiSearchQueryChanged(it) },
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(32.dp))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(32.dp))
                         .background(colors.glass),
-                    placeholder = { Text("Search OpenWeatherMap...", color = colors.text3) },
+                    placeholder = { Text(stringResource(R.string.search_openweathermap), color = colors.text3) },
                     leadingIcon = {
                         Icon(
                             Icons.Filled.Search,
@@ -240,7 +268,9 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
 
                 if (isSearchingApi) {
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(150.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(color = colors.purpleBright)
@@ -261,7 +291,11 @@ fun FavoritesScreen(viewModel: FavoritesViewModel) {
 }
 
 @Composable
-fun StableSwipeToDismissCard(state: FavoriteWeatherState, onDeleteRequest: () -> Unit) {
+fun StableSwipeToDismissCard(
+    state: FavoriteWeatherState,
+    onDeleteRequest: () -> Unit,
+    onClick: () -> Unit
+) {
     var offsetX by remember { mutableFloatStateOf(0f) }
     val animatedOffsetX by animateFloatAsState(targetValue = offsetX, label = "swipe")
     val colors = LocalTempestiaColors.current
@@ -326,6 +360,7 @@ fun StableSwipeToDismissCard(state: FavoriteWeatherState, onDeleteRequest: () ->
                         }
                     )
                 }
+                .clickable { onClick() }
                 .padding(20.dp)
         ) {
             FavoriteCityCardContent(state)
@@ -344,6 +379,27 @@ fun FavoriteCityCardContent(state: FavoriteWeatherState) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
+                if (city.isCurrentLocation) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.MyLocation,
+                            contentDescription = "Current Location",
+                            tint = colors.purpleBright,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.current_badge),
+                            color = colors.purpleBright,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                    }
+                }
                 Text(
                     text = city.cityName.uppercase(),
                     color = colors.text1,
@@ -363,7 +419,11 @@ fun FavoriteCityCardContent(state: FavoriteWeatherState) {
 
             Column(horizontalAlignment = Alignment.End) {
                 if (state.isLoading) {
-                    CircularProgressIndicator(color = colors.purpleBright, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                    CircularProgressIndicator(
+                        color = colors.purpleBright,
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
+                    )
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -379,7 +439,7 @@ fun FavoriteCityCardContent(state: FavoriteWeatherState) {
                         )
                     }
                     Text(
-                        text = state.condition ?: "Unknown",
+                        text = state.condition ?: stringResource(R.string.unknown),
                         color = colors.text3,
                         fontSize = 14.sp
                     )
@@ -397,11 +457,11 @@ fun FavoriteCityCardContent(state: FavoriteWeatherState) {
         ) {
             val windKmh = state.windSpeed?.let { (it * 3.6).roundToInt() } ?: 0
 
-            MetricText("Humidity", "${state.humidity ?: 0}%")
+            MetricText(stringResource(R.string.humidity), "${state.humidity ?: 0}%")
             Spacer(modifier = Modifier.weight(1f))
-            MetricText("Wind", "$windKmh km/h")
+            MetricText(stringResource(R.string.wind), "$windKmh km/h")
             Spacer(modifier = Modifier.weight(1f))
-            MetricText("UV", "${state.uvi?.roundToInt() ?: 0}")
+            MetricText(stringResource(R.string.uv), "${state.uvi?.roundToInt() ?: 0}")
         }
     }
 }
@@ -412,13 +472,21 @@ fun SearchResultRow(result: GeoResponse, onClick: () -> Unit) {
     val locationText = listOfNotNull(result.state, result.country).joinToString(", ")
 
     Row(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = 8.dp, vertical = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(Icons.Filled.LocationOn, contentDescription = null, tint = colors.purpleBright)
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text(text = result.name, color = colors.text1, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = result.name,
+                color = colors.text1,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
             if (locationText.isNotEmpty()) {
                 Text(text = locationText, color = colors.text3, fontSize = 13.sp)
             }

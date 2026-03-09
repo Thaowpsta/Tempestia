@@ -43,7 +43,7 @@ class WeatherAlertWorker(
                         }
 
                         showNotification(
-                            title = "⚠️ ${apiAlert.event}",
+                            title = applicationContext.getString(R.string.worker_alert_prefix, apiAlert.event),
                             message = shortDesc,
                             type = NotificationType.SOUND
                         )
@@ -63,13 +63,21 @@ class WeatherAlertWorker(
                 when (alert.title) {
                     "Rain Reminder" -> {
                         if (weather.current.weather.any { it.description.contains("rain", true) }) {
-                            showNotification("Rain Expected! 🌧️", alert.subtitle, notifType)
+                            showNotification(
+                                applicationContext.getString(R.string.worker_rain_title),
+                                alert.subtitle,
+                                notifType
+                            )
                         }
                     }
 
                     "Extreme Heat" -> {
                         if (weather.current.temp >= 40.0) {
-                            showNotification("Extreme Heat Warning 🌡️", "It is currently ${weather.current.temp.toInt()}°C.", notifType)
+                            showNotification(
+                                applicationContext.getString(R.string.worker_heat_title),
+                                applicationContext.getString(R.string.worker_heat_msg, weather.current.temp.toInt()),
+                                notifType
+                            )
                         }
                     }
 
@@ -82,11 +90,11 @@ class WeatherAlertWorker(
 
                         if (currentHour in 7..11 && currentDayOfYear != lastSentDay) {
 
-                            val condition = weather.current.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() } ?: "Clear"
+                            val condition = weather.current.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() } ?: applicationContext.getString(R.string.condition_clear)
 
                             showNotification(
-                                "Good Morning! 🌅",
-                                "It's ${weather.current.temp.toInt()}°C and $condition today.",
+                                applicationContext.getString(R.string.worker_morning_title),
+                                applicationContext.getString(R.string.worker_morning_msg, weather.current.temp.toInt(), condition),
                                 notifType
                             )
 
@@ -119,7 +127,8 @@ class WeatherAlertWorker(
                 NotificationType.SOUND -> NotificationManager.IMPORTANCE_HIGH     // Popup + Sound
                 NotificationType.ALARM -> NotificationManager.IMPORTANCE_NONE
             }
-            val channel = NotificationChannel(channelId, "Weather Alerts", importance)
+            val channelName = context.getString(R.string.worker_channel_name)
+            val channel = NotificationChannel(channelId, channelName, importance)
             manager.createNotificationChannel(channel)
         }
 

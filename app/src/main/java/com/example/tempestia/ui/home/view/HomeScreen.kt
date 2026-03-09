@@ -34,6 +34,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tempestia.R
 import com.example.tempestia.data.weather.model.DailyWeather
 import com.example.tempestia.data.weather.model.HourlyWeather
 import com.example.tempestia.data.weather.model.WeatherResponse
@@ -183,7 +185,7 @@ fun WeatherDashboard(
             modifier = Modifier.offset(x = 10.dp)
         )
 
-        val condition = data.current.weather.firstOrNull()?.description ?: "Unknown"
+        val condition = data.current.weather.firstOrNull()?.description ?: stringResource(R.string.unknown)
         Text(
             text = condition.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
             fontSize = 24.sp,
@@ -205,10 +207,10 @@ fun WeatherDashboard(
                 val windSpeedKmh = (data.current.windSpeed * 3.6).toInt()
                 val feelsLikeTemp = formatTemp(data.current.feelsLike, isCelsius)
 
-                MetricItem("FEELS LIKE", "${feelsLikeTemp}°", Modifier.weight(1f))
-                MetricItem("HUMIDITY", "${data.current.humidity}%", Modifier.weight(1f))
-                MetricItem("WIND", "$windSpeedKmh km/h", Modifier.weight(1f))
-                MetricItem("UV INDEX", "${data.current.uvi.roundToInt()}", Modifier.weight(1f))
+                MetricItem(stringResource(R.string.feels_like), "${feelsLikeTemp}°", Modifier.weight(1f))
+                MetricItem(stringResource(R.string.humidity), "${data.current.humidity}%", Modifier.weight(1f))
+                MetricItem(stringResource(R.string.wind), "$windSpeedKmh km/h", Modifier.weight(1f))
+                MetricItem(stringResource(R.string.uv), "${data.current.uvi.roundToInt()}", Modifier.weight(1f))
             }
         }
 
@@ -228,7 +230,7 @@ fun WeatherDashboard(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "HOURLY FORECAST",
+                text = stringResource(R.string.hourly_forecast),
                 color = colors.text3,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -254,7 +256,7 @@ fun WeatherDashboard(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "6-DAY FORECAST",
+                text = stringResource(R.string.six_day_forecast),
                 color = colors.text3,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -268,7 +270,7 @@ fun WeatherDashboard(
 
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "ATMOSPHERIC DETAILS",
+                text = stringResource(R.string.atmospheric_details),
                 color = colors.text3,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -277,29 +279,29 @@ fun WeatherDashboard(
             )
 
             val humiditySubtext = when {
-                data.current.humidity < 30 -> "Dry air"
-                data.current.humidity < 60 -> "Comfortable"
-                data.current.humidity < 80 -> "Slightly humid"
-                else -> "Very humid"
+                data.current.humidity < 30 -> stringResource(R.string.dry_air)
+                data.current.humidity < 60 -> stringResource(R.string.comfortable)
+                data.current.humidity < 80 -> stringResource(R.string.slightly_humid)
+                else -> stringResource(R.string.very_humid)
             }
 
             val windSpeed = data.current.windSpeed.toInt()
             val windSubtext = when {
-                windSpeed < 2 -> "Calm conditions"
-                windSpeed < 5 -> "Light breeze"
-                windSpeed < 10 -> "Moderate breeze"
-                windSpeed < 15 -> "Strong wind"
-                else -> "Gale force"
+                windSpeed < 2 -> stringResource(R.string.calm_conditions)
+                windSpeed < 5 -> stringResource(R.string.light_breeze)
+                windSpeed < 10 -> stringResource(R.string.moderate_breeze)
+                windSpeed < 15 -> stringResource(R.string.strong_wind)
+                else -> stringResource(R.string.gale_force)
             }
 
             val visibilityKm = data.current.visibility / 1000
-            val visSubtext = if (visibilityKm >= 10) "Perfect clear view" else "Reduced visibility"
+            val visSubtext = if (visibilityKm >= 10) stringResource(R.string.perfect_clear_view) else stringResource(R.string.reduced_visibility)
 
             val pressure = data.current.pressure
             val pressSubtext = when {
-                pressure > 1015 -> "High pressure"
-                pressure < 1005 -> "Low pressure"
-                else -> "Normal pressure"
+                pressure > 1015 -> stringResource(R.string.high_pressure)
+                pressure < 1005 -> stringResource(R.string.low_pressure)
+                else -> stringResource(R.string.normal_pressure)
             }
 
             val timeFormatter = SimpleDateFormat(if (is24Hour) "HH:mm" else "h:mm a", Locale.getDefault())
@@ -309,12 +311,12 @@ fun WeatherDashboard(
             data class GridItem(val title: String, val value: String, val subtext: String, val icon: String)
 
             val gridItems = listOf(
-                GridItem("HUMIDITY", "${data.current.humidity}%", humiditySubtext, "💧"),
-                GridItem("WIND SPEED", "$windSpeed m/s", windSubtext, "💨"),
-                GridItem("VISIBILITY", "$visibilityKm km", visSubtext, "👁️"),
-                GridItem("PRESSURE", "$pressure hPa", pressSubtext, "🌡️"),
-                GridItem("SUNRISE", sunriseTime, "Morning light", "🌅"),
-                GridItem("SUNSET", sunsetTime, "Evening dusk", "🌇")
+                GridItem(stringResource(R.string.humidity), "${data.current.humidity}%", humiditySubtext, "💧"),
+                GridItem(stringResource(R.string.wind), "$windSpeed m/s", windSubtext, "💨"),
+                GridItem(stringResource(R.string.visibility), "$visibilityKm km", visSubtext, "👁️"),
+                GridItem(stringResource(R.string.pressure), "$pressure hPa", pressSubtext, "🌡️"),
+                GridItem(stringResource(R.string.sunrise), sunriseTime, stringResource(R.string.morning_light), "🌅"),
+                GridItem(stringResource(R.string.sunset), sunsetTime, stringResource(R.string.evening_dusk), "🌇")
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -593,7 +595,7 @@ fun ErrorScreen(message: String) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "Failed to load weather",
+            stringResource(R.string.failed_to_load),
             color = colors.text1,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold

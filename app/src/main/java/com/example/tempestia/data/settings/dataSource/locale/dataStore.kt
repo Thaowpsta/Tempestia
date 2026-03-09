@@ -19,6 +19,7 @@ class SettingsLocalDatasource(private val context: Context) {
     private val IS_CELSIUS_KEY = booleanPreferencesKey("is_celsius")
     private val IS_24_HOUR_KEY = booleanPreferencesKey("is_24_hour")
     private val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
+    private val LANGUAGE_KEY = stringPreferencesKey("language")
 
     val isOnboardingCompleted: Flow<Boolean> = context.dataStore.data.map { it[ONBOARDING_COMPLETED_KEY] ?: false }
     val locationFlow: Flow<Pair<Double, Double>?> = context.dataStore.data.map {
@@ -31,6 +32,8 @@ class SettingsLocalDatasource(private val context: Context) {
     val is24HourFlow: Flow<Boolean> = context.dataStore.data.map { it[IS_24_HOUR_KEY] ?: false }
     val themeModeFlow: Flow<String> = context.dataStore.data.map { it[THEME_MODE_KEY] ?: "System" }
 
+    val languageFlow: Flow<String> = context.dataStore.data.map { it[LANGUAGE_KEY] ?: "en" }
+
     suspend fun completeOnboarding() { context.dataStore.edit { it[ONBOARDING_COMPLETED_KEY] = true } }
     suspend fun saveLocation(lat: Double, lng: Double) {
         context.dataStore.edit {
@@ -42,4 +45,8 @@ class SettingsLocalDatasource(private val context: Context) {
     suspend fun saveIsCelsius(isCelsius: Boolean) { context.dataStore.edit { it[IS_CELSIUS_KEY] = isCelsius } }
     suspend fun saveIs24Hour(is24Hour: Boolean) { context.dataStore.edit { it[IS_24_HOUR_KEY] = is24Hour } }
     suspend fun saveThemeMode(themeMode: String) { context.dataStore.edit { it[THEME_MODE_KEY] = themeMode } }
+
+    suspend fun saveLanguage(language: String) {
+        context.dataStore.edit { it[LANGUAGE_KEY] = language }
+    }
 }
