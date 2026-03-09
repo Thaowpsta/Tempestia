@@ -225,7 +225,9 @@ fun TempestiaApp(
                     val settingsViewModel: SettingsViewModel = viewModel(
                         factory = SettingsViewModelFactory(repository)
                     )
-                    SettingsScreen(settingsViewModel)
+                    SettingsScreen(viewModel = settingsViewModel, onNavigateToFavorites = {
+                        currentDestination = AppDestinations.FAVORITES
+                    })
                 }
             }
         }

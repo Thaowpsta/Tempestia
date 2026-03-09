@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.tempestia.repository.WeatherRepository
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(private val repository: WeatherRepository) : ViewModel() {
@@ -11,6 +12,14 @@ class SettingsViewModel(private val repository: WeatherRepository) : ViewModel()
     val isCelsiusFlow = repository.isCelsiusFlow
     val is24HourFlow = repository.is24HourFlow
     val themeModeFlow = repository.themeModeFlow
+
+    val locationNameFlow = repository.locationFlow.map { loc ->
+        if (loc != null) {
+            repository.getPreciseLocationName(loc.first, loc.second) ?: "Unknown Location"
+        } else {
+            "Location not set"
+        }
+    }
 
     fun setCelsius(isCelsius: Boolean) {
         viewModelScope.launch { repository.saveIsCelsius(isCelsius) }
@@ -22,6 +31,10 @@ class SettingsViewModel(private val repository: WeatherRepository) : ViewModel()
 
     fun setThemeMode(mode: String) {
         viewModelScope.launch { repository.saveThemeMode(mode) }
+    }
+
+    fun saveLocation(lat: Double, lng: Double) {
+        viewModelScope.launch { repository.saveLocation(lat, lng) }
     }
 }
 

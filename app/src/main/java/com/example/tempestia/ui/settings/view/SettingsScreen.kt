@@ -1,5 +1,11 @@
 package com.example.tempestia.ui.settings.view
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,25 +25,117 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.ui.settings.viewModel.SettingsViewModel
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
+fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Unit = {}) {
     val colors = LocalTempestiaColors.current
+    val context = LocalContext.current
 
     val isCelsius by viewModel.isCelsiusFlow.collectAsState(initial = true)
     val is24Hour by viewModel.is24HourFlow.collectAsState(initial = false)
     val themeMode by viewModel.themeModeFlow.collectAsState(initial = "System")
 
-    Box(modifier = Modifier.fillMaxSize().background(colors.bgDeep)) {
+    var locationMethod by remember { mutableStateOf("GPS") }
+    val locationName by viewModel.locationNameFlow.collectAsState(initial = "Locating...")
 
+    var showMap by remember { mutableStateOf(false) }
+    var isFetchingLocation by remember { mutableStateOf(false) }
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    @SuppressLint("MissingPermission")
+    fun fetchLocation() {
+        isFetchingLocation = true
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { location ->
+                isFetchingLocation = false
+                if (location != null) {
+                    viewModel.saveLocation(location.latitude, location.longitude)
+                    Toast.makeText(
+                        context,
+                        "GPS Location updated successfully!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(context, "Could not lock GPS. Try the map.", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+            .addOnFailureListener {
+                isFetchingLocation = false
+                Toast.makeText(context, "Failed to get location. Try the map.", Toast.LENGTH_SHORT)
+                    .show()
+            }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissions ->
+            val hasLoc = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                    permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            if (hasLoc) fetchLocation()
+            else Toast.makeText(context, "Location permission denied.", Toast.LENGTH_SHORT).show()
+        }
+    )
+
+    fun requestLocationAndFetch() {
+        val hasFine = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        val hasCoarse = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasFine || hasCoarse) fetchLocation()
+        else permissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
+    }
+
+    if (showMap) {
+        Dialog(
+            onDismissRequest = { showMap = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            com.example.tempestia.ui.onboarding.view.MapScreen(
+                onBack = {
+                    showMap = false
+                },
+                onLocationSelected = { lat, lng ->
+                    viewModel.saveLocation(lat, lng)
+                    showMap = false
+                    locationMethod = "Map"
+                    Toast.makeText(
+                        context,
+                        "Map Location updated successfully!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            )
+        }
+    }
+
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(colors.bgDeep)) {
         AnimatedParticleBackground()
 
         Column(modifier = Modifier.fillMaxSize()) {
@@ -45,6 +144,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 20.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Spacer(modifier = Modifier.height(48.dp))
                 Text(
@@ -54,6 +154,67 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                Text(
+                    text = "LOCATION",
+                    color = colors.text3,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.5.sp,
+                    modifier = Modifier.padding(bottom = 12.dp, start = 8.dp)
+                )
+
+                SettingsGroup {
+                    SettingsRow(
+                        icon = Icons.Filled.MyLocation,
+                        title = "Location Method",
+                        trailingContent = {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                SettingsChip("GPS", locationMethod == "GPS") {
+                                    locationMethod = "GPS"
+                                    requestLocationAndFetch()
+                                }
+                                SettingsChip("Manual Map", locationMethod == "Map") {
+                                    showMap = true
+                                }
+                            }
+                        }
+                    )
+
+                    HorizontalDivider(color = colors.glassBorder.copy(alpha = 0.5f))
+
+                    SettingsRow(
+                        icon = Icons.Filled.Map,
+                        title = "Current Location",
+                        subtitle = if (isFetchingLocation) "Updating GPS..." else locationName,
+                        trailingContent = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    "Change",
+                                    color = colors.text2,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                    contentDescription = null,
+                                    tint = colors.text2,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        },
+                        onClick = {
+                            if (locationMethod == "GPS") {
+                                onNavigateToFavorites()
+                            } else {
+                                showMap = true
+                            }
+                        }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(28.dp))
 
@@ -226,9 +387,18 @@ fun SettingsChip(
 ) {
     val colors = LocalTempestiaColors.current
 
-    val bgColor by animateColorAsState(if (isActive) colors.purpleCore else colors.glass, label = "bg")
-    val textColor by animateColorAsState(if (isActive) Color.White else colors.text2, label = "text")
-    val borderColor by animateColorAsState(if (isActive) Color.Transparent else colors.glassBorder, label = "border")
+    val bgColor by animateColorAsState(
+        if (isActive) colors.purpleCore else colors.glass,
+        label = "bg"
+    )
+    val textColor by animateColorAsState(
+        if (isActive) Color.White else colors.text2,
+        label = "text"
+    )
+    val borderColor by animateColorAsState(
+        if (isActive) Color.Transparent else colors.glassBorder,
+        label = "border"
+    )
 
     Box(
         modifier = modifier
