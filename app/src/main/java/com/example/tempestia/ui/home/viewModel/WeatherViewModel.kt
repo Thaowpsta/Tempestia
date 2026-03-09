@@ -35,11 +35,15 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
                 val weatherResponse = repository.getWeather(lat, lon, apiKey)
                 val geoResponse = repository.getCityName(lat, lon, apiKey)
 
+                val preciseNeighborhood = repository.getPreciseLocationName(lat, lon)
+
                 val weatherBody = weatherResponse.body()
                 val geoBody = geoResponse.body()
 
                 if (weatherResponse.isSuccessful && weatherBody != null) {
-                    val finalCityName = geoBody?.firstOrNull()?.name
+
+                    val finalCityName = preciseNeighborhood
+                        ?: geoBody?.firstOrNull()?.name
                         ?: weatherBody.timezone.substringAfterLast("/")
 
                     _weatherState.value = WeatherState.Success(weatherBody, finalCityName)

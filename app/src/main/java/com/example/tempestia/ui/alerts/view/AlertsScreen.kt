@@ -69,6 +69,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
 
     var showAddSheet by remember { mutableStateOf(false) }
     var alertToEdit by remember { mutableStateOf<SubscribedAlert?>(null) }
+    var templateToAdd by remember { mutableStateOf<AlertItem?>(null) }
 
     var hasNotificationPermission by remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -110,8 +111,6 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         viewModel.updateAlert(
                             alertToEdit!!,
                             newType = NotificationType.SILENT,
-                            hour = null,
-                            minute = null,
                             context = context
                         )
                         alertToEdit = null
@@ -124,8 +123,6 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         viewModel.updateAlert(
                             alertToEdit!!,
                             newType = NotificationType.PUSH,
-                            hour = null,
-                            minute = null,
                             context = context
                         )
                         alertToEdit = null
@@ -138,8 +135,6 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         viewModel.updateAlert(
                             alertToEdit!!,
                             newType = NotificationType.SOUND,
-                            hour = null,
-                            minute = null,
                             context = context
                         )
                         alertToEdit = null
@@ -167,7 +162,11 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         // "Display Over Other Apps" Permission
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                             if (!android.provider.Settings.canDrawOverlays(context)) {
-                                android.widget.Toast.makeText(context, "Please allow 'Display over other apps' to force the alarm on screen!", android.widget.Toast.LENGTH_LONG).show()
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Please allow 'Display over other apps' to force the alarm on screen!",
+                                    android.widget.Toast.LENGTH_LONG
+                                ).show()
                                 val intent = android.content.Intent(
                                     android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                                     android.net.Uri.parse("package:${context.packageName}")
@@ -182,7 +181,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                             context,
                             { _, selectedHour, selectedMinute ->
                                 viewModel.updateAlert(
-                                    alert = alertToEdit!!,
+                                    alertToEdit!!,
                                     newType = NotificationType.ALARM,
                                     hour = selectedHour,
                                     minute = selectedMinute,
@@ -200,10 +199,101 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { alertToEdit = null }) {
+                    Text("Cancel", color = colors.text3)
+                }
+            }
+        )
+    }
+
+    if (templateToAdd != null) {
+        val handleStandardAdd = { notifType: NotificationType ->
+            viewModel.addAlert(templateToAdd!!, notifType)
+            templateToAdd = null
+            showAddSheet = false
+            if (!hasNotificationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        AlertDialog(
+            onDismissRequest = { templateToAdd = null },
+            containerColor = colors.bgCard.copy(alpha = 1f),
+            titleContentColor = colors.text1,
+            title = { Text("Add Alert", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "Cancel",
+                        "How would you like to be notified for '${templateToAdd!!.title}'?",
                         color = colors.text3
                     )
+
+                    NotificationChoiceRow("Silent (No Popup)", Icons.Filled.NotificationsOff) {
+                        handleStandardAdd(NotificationType.SILENT)
+                    }
+                    NotificationChoiceRow("Push Notification", Icons.Filled.Notifications) {
+                        handleStandardAdd(NotificationType.PUSH)
+                    }
+                    NotificationChoiceRow("Push + Loud Sound", Icons.Filled.NotificationsActive) {
+                        handleStandardAdd(NotificationType.SOUND)
+                    }
+
+                    NotificationChoiceRow(
+                        "Full-Screen Alarm",
+                        Icons.Filled.Alarm,
+                        isUrgent = true
+                    ) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            val alarmManager =
+                                context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+                            if (!alarmManager.canScheduleExactAlarms()) {
+                                val intent =
+                                    android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                                        .apply {
+                                            data =
+                                                android.net.Uri.parse("package:${context.packageName}")
+                                        }
+                                context.startActivity(intent)
+                                return@NotificationChoiceRow
+                            }
+                        }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            if (!android.provider.Settings.canDrawOverlays(context)) {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Please allow 'Display over other apps' to force the alarm on screen!",
+                                    android.widget.Toast.LENGTH_LONG
+                                ).show()
+                                val intent = android.content.Intent(
+                                    android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                    android.net.Uri.parse("package:${context.packageName}")
+                                )
+                                context.startActivity(intent)
+                                return@NotificationChoiceRow
+                            }
+                        }
+
+                        val calendar = Calendar.getInstance()
+                        TimePickerDialog(
+                            context,
+                            { _, selectedHour, selectedMinute ->
+                                viewModel.addAlert(
+                                    templateToAdd!!,
+                                    NotificationType.ALARM,
+                                    hour = selectedHour,
+                                    minute = selectedMinute
+                                )
+                                templateToAdd = null
+                                showAddSheet = false
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false
+                        ).show()
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { templateToAdd = null }) {
+                    Text("Cancel", color = colors.text3)
                 }
             }
         )
@@ -342,14 +432,8 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
                             items(availableTemplates) { template ->
                                 TemplateRow(template) {
-                                    // Instantly adds with default Push + Sound without asking!
-                                    viewModel.addAlert(template, NotificationType.SOUND)
-
-                                    if (!hasNotificationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                                    }
-
-                                    showAddSheet = false
+                                    // 🚨 NEW: Open the selection dialog instead of instantly adding!
+                                    templateToAdd = template
                                 }
                             }
                         }

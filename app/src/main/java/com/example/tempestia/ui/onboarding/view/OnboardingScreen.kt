@@ -1,7 +1,9 @@
 package com.example.tempestia.ui.onboarding.view
 
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -46,6 +48,8 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 import com.example.tempestia.R
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 
 data class TempestiaColors(
     val bgDeep: Color,
@@ -99,7 +103,7 @@ val LocalTempestiaColors = staticCompositionLocalOf { LightTempestiaColors }
 
 
 @Composable
-fun OnboardingScreen(onFinished: () -> Unit, onOpenMap: () -> Unit) {
+fun OnboardingScreen(onFinished: (Double?, Double?) -> Unit, onOpenMap: () -> Unit) {
     val isSystemDark = isSystemInDarkTheme()
     val colors = if (isSystemDark) DarkTempestiaColors else LightTempestiaColors
 
@@ -133,6 +137,148 @@ fun OnboardingScreen(onFinished: () -> Unit, onOpenMap: () -> Unit) {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun PermissionsScreen(
+    onBack: () -> Unit,
+    onFinish: (Double?, Double?) -> Unit,
+    onOpenMap: () -> Unit
+) {
+    val colors = LocalTempestiaColors.current
+    val context = LocalContext.current
+
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var isFetchingLocation by remember { mutableStateOf(false) }
+
+    @SuppressLint("MissingPermission")
+    fun fetchLocationAndFinish() {
+        isFetchingLocation = true
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { location ->
+                isFetchingLocation = false
+                if (location != null) {
+                    // Success! Pass coords to MainActivity to save & finish
+                    onFinish(location.latitude, location.longitude)
+                } else {
+                    // Failed (Usually because GPS is physically turned off in quick settings)
+                    Toast.makeText(context, "Could not get GPS signal. Please use map.", Toast.LENGTH_LONG).show()
+                    onOpenMap()
+                }
+            }
+            .addOnFailureListener {
+                isFetchingLocation = false
+                Toast.makeText(context, "Failed to get location. Please use map.", Toast.LENGTH_LONG).show()
+                onOpenMap()
+            }
+    }
+
+    // Auto-fetch if permissions are already granted (like on an app reinstall!)
+    LaunchedEffect(Unit) {
+        val hasFineLocation = ContextCompat.checkSelfPermission(
+            context, android.Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val hasCoarseLocation = ContextCompat.checkSelfPermission(
+            context, android.Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasFineLocation || hasCoarseLocation) {
+            fetchLocationAndFinish()
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissions ->
+            val hasLoc = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                    permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+            if (hasLoc) {
+                // If they clicked allow, fetch the GPS instantly!
+                fetchLocationAndFinish()
+            } else {
+                Toast.makeText(context, "Location required. Please use Map.", Toast.LENGTH_SHORT).show()
+                onOpenMap()
+            }
+        }
+    )
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = colors.text2,
+                modifier = Modifier.size(38.dp).background(colors.glass, CircleShape)
+                    .border(1.dp, colors.glassBorder, CircleShape)
+                    .padding(8.dp).clickable { if (!isFetchingLocation) onBack() }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Column(
+            modifier = Modifier.fillMaxWidth()
+                .background(colors.bgCard, RoundedCornerShape(32.dp))
+                .border(1.dp, colors.glassBorder, RoundedCornerShape(32.dp))
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Local Weather Alerts", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.text1)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Enable permissions so Tempestia can track storms in your exact area and send critical alerts.",
+                fontSize = 14.sp,
+                color = colors.text3,
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            PermissionRow(Icons.Filled.LocationOn, "Location Access", "To provide accurate local weather.")
+            Spacer(modifier = Modifier.height(12.dp))
+            PermissionRow(Icons.Filled.Notifications, "Push Notifications", "To alert you of incoming storms.")
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            PulsingButton(
+                // 🚨 NEW: Show loading text while searching for GPS
+                text = if (isFetchingLocation) "Getting Location..." else "Enable Permissions",
+                onClick = {
+                    if (!isFetchingLocation) {
+                        val permissionsToRequest = mutableListOf(
+                            android.Manifest.permission.ACCESS_FINE_LOCATION,
+                            android.Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
+                        }
+
+                        permissionLauncher.launch(permissionsToRequest.toTypedArray())
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Use map selection instead",
+                color = colors.purpleBright,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable {
+                    if (!isFetchingLocation) onOpenMap()
+                }
+            )
         }
     }
 }

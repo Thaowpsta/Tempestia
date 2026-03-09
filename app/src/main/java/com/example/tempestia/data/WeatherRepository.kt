@@ -1,15 +1,19 @@
 package com.example.tempestia.repository
 
 import android.content.Context
+import android.location.Geocoder
 import com.example.tempestia.data.alerts.dataSource.locale.AlertsLocalDatasource
 import com.example.tempestia.data.alerts.model.Alert
 import com.example.tempestia.data.favorites.dataSource.local.FavoritesLocalDatasource
 import com.example.tempestia.data.favorites.model.FavoriteCity
 import com.example.tempestia.data.settings.dataSource.locale.SettingsLocalDatasource
 import com.example.tempestia.data.weather.dataSource.remote.WeatherRemoteDatasource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
+import java.util.Locale
 
-class WeatherRepository(context: Context) {
+class WeatherRepository(private val context: Context) {
     private val remoteDatasource = WeatherRemoteDatasource()
     private val FavoriteslocalDatasource = FavoritesLocalDatasource(context)
     private val onboardingLocalDatasource = SettingsLocalDatasource(context)
@@ -17,6 +21,24 @@ class WeatherRepository(context: Context) {
 
     val isOnboardingCompleted = onboardingLocalDatasource.isOnboardingCompleted
     val locationFlow = onboardingLocalDatasource.locationFlow
+
+    suspend fun getPreciseLocationName(lat: Double, lon: Double): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocation(lat, lon, 1)
+
+                if (!addresses.isNullOrEmpty()) {
+                    val address = addresses[0]
+                    // Priority: Neighborhood -> City -> Region
+                    address.subLocality ?: address.locality ?: address.adminArea
+                } else null
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
 
     suspend fun completeOnboarding() = onboardingLocalDatasource.completeOnboarding()
 

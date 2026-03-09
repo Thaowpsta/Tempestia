@@ -94,8 +94,11 @@ class MainActivity : ComponentActivity() {
                         TempestiaApp(repository, onboardingViewModel, startDestination)
                     } else {
                         OnboardingScreen(
-                            onFinished = {
-                                onboardingViewModel.completeOnboarding()
+                            onFinished = { lat, lng ->
+                                if (lat != null && lng != null) {
+                                    onboardingViewModel.saveLocation(lat, lng)
+                                    onboardingViewModel.completeOnboarding()
+                                }
                             },
                             onOpenMap = {
                                 showMap = true
