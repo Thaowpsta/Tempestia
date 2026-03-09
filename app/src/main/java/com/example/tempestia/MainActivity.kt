@@ -43,6 +43,7 @@ import com.example.tempestia.theme.TempestiaTheme
 import com.example.tempestia.ui.alerts.view.AlertsScreen
 import com.example.tempestia.ui.alerts.viewModel.AlertsViewModel
 import com.example.tempestia.ui.alerts.viewModel.AlertsViewModelFactory
+import com.example.tempestia.ui.settings.view.SettingsScreen
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -213,9 +214,7 @@ fun TempestiaApp(
                 }
 
                 AppDestinations.SETTINGS -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Settings Coming Soon", color = colors.text1, fontSize = 24.sp)
-                    }
+                    SettingsScreen()
                 }
             }
         }
