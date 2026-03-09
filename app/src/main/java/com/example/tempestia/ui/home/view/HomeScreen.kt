@@ -9,7 +9,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -30,7 +29,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.ContentDataType.Companion.Date
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -38,27 +36,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.BaselineShift
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.tempestia.data.weather.model.DailyWeather
+import com.example.tempestia.data.weather.model.HourlyWeather
+import com.example.tempestia.data.weather.model.WeatherResponse
 import com.example.tempestia.ui.home.viewModel.WeatherState
 import com.example.tempestia.ui.home.viewModel.WeatherViewModel
 import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
-import java.util.Locale
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.BaselineShift
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
-import com.example.tempestia.data.weather.model.DailyWeather
-import com.example.tempestia.data.weather.model.HourlyWeather
-import com.example.tempestia.data.weather.model.WeatherResponse
 import com.example.tempestia.utils.getWeatherEmoji
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import kotlin.math.roundToInt
+
+fun formatTemp(tempCelsius: Double, isCelsius: Boolean): Int {
+    return if (isCelsius) tempCelsius.roundToInt() else ((tempCelsius * 9 / 5) + 32).roundToInt()
+}
 
 @Composable
 fun HomeScreen(
@@ -70,6 +71,9 @@ fun HomeScreen(
     val weatherState by weatherViewModel.weatherState.collectAsState()
 
     val userLocation by onboardingViewModel.locationFlow.collectAsState(initial = null)
+
+    val isCelsius by weatherViewModel.isCelsiusFlow.collectAsState(initial = true)
+    val is24Hour by weatherViewModel.is24HourFlow.collectAsState(initial = false)
 
     LaunchedEffect(userLocation) {
         userLocation?.let { (lat, lng) ->
@@ -100,7 +104,7 @@ fun HomeScreen(
                 }
 
                 is WeatherState.Success -> {
-                    WeatherDashboard(state.weatherData, state.cityName)
+                    WeatherDashboard(state.weatherData, state.cityName, isCelsius, is24Hour)
                 }
 
                 is WeatherState.Error -> {
@@ -112,7 +116,12 @@ fun HomeScreen(
 }
 
 @Composable
-fun WeatherDashboard(data: WeatherResponse, cityName: String) {
+fun WeatherDashboard(
+    data: WeatherResponse,
+    cityName: String,
+    isCelsius: Boolean,
+    is24Hour: Boolean
+) {
     val colors = LocalTempestiaColors.current
 
     Column(
@@ -151,12 +160,12 @@ fun WeatherDashboard(data: WeatherResponse, cityName: String) {
         val mainIconCode = data.current.weather.firstOrNull()?.icon ?: ""
         Text(getWeatherEmoji(mainIconCode), fontSize = 64.sp)
 
-
         Spacer(modifier = Modifier.height(14.dp))
 
+        val mainTemp = formatTemp(data.current.temp, isCelsius)
         Text(
             text = buildAnnotatedString {
-                append("${data.current.temp.toInt()}")
+                append("$mainTemp")
                 withStyle(
                     style = SpanStyle(
                         fontSize = 32.sp,
@@ -194,8 +203,9 @@ fun WeatherDashboard(data: WeatherResponse, cityName: String) {
         ) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 val windSpeedKmh = (data.current.windSpeed * 3.6).toInt()
+                val feelsLikeTemp = formatTemp(data.current.feelsLike, isCelsius)
 
-                MetricItem("FEELS LIKE", "${data.current.feelsLike.toInt()}°", Modifier.weight(1f))
+                MetricItem("FEELS LIKE", "${feelsLikeTemp}°", Modifier.weight(1f))
                 MetricItem("HUMIDITY", "${data.current.humidity}%", Modifier.weight(1f))
                 MetricItem("WIND", "$windSpeedKmh km/h", Modifier.weight(1f))
                 MetricItem("UV INDEX", "${data.current.uvi.roundToInt()}", Modifier.weight(1f))
@@ -226,7 +236,7 @@ fun WeatherDashboard(data: WeatherResponse, cityName: String) {
             )
         }
 
-        HourlyForecastSection(data.hourly)
+        HourlyForecastSection(data.hourly, isCelsius, is24Hour)
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -252,7 +262,7 @@ fun WeatherDashboard(data: WeatherResponse, cityName: String) {
             )
         }
 
-        DailyForecastSection(data.daily)
+        DailyForecastSection(data.daily, isCelsius)
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -292,7 +302,7 @@ fun WeatherDashboard(data: WeatherResponse, cityName: String) {
                 else -> "Normal pressure"
             }
 
-            val timeFormatter = SimpleDateFormat("h:mm a", Locale.getDefault())
+            val timeFormatter = SimpleDateFormat(if (is24Hour) "HH:mm" else "h:mm a", Locale.getDefault())
             val sunriseTime = timeFormatter.format(Date(data.current.sunrise * 1000L))
             val sunsetTime = timeFormatter.format(Date(data.current.sunset * 1000L))
 
@@ -332,10 +342,10 @@ fun WeatherDashboard(data: WeatherResponse, cityName: String) {
 }
 
 @Composable
-fun HourlyForecastSection(hourlyData: List<HourlyWeather>) {
+fun HourlyForecastSection(hourlyData: List<HourlyWeather>, isCelsius: Boolean, is24Hour: Boolean) {
     val colors = LocalTempestiaColors.current
-    val timeFormatter = SimpleDateFormat("h a", Locale.getDefault())
 
+    val timeFormatter = SimpleDateFormat(if (is24Hour) "HH:00" else "h a", Locale.getDefault())
     val hourlyData = hourlyData.take(24)
 
     LazyRow(
@@ -347,6 +357,7 @@ fun HourlyForecastSection(hourlyData: List<HourlyWeather>) {
             val date = Date(hour.dt * 1000L)
             val time = timeFormatter.format(date)
             val icon = getWeatherEmoji(hour.weather.firstOrNull()?.icon ?: "")
+            val temp = formatTemp(hour.temp, isCelsius)
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -370,7 +381,7 @@ fun HourlyForecastSection(hourlyData: List<HourlyWeather>) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "${hour.temp.toInt()}°",
+                    text = "${temp}°",
                     color = colors.text1,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -381,7 +392,7 @@ fun HourlyForecastSection(hourlyData: List<HourlyWeather>) {
 }
 
 @Composable
-fun DailyForecastSection(dailyData: List<DailyWeather>) {
+fun DailyForecastSection(dailyData: List<DailyWeather>, isCelsius: Boolean) {
     val colors = LocalTempestiaColors.current
     val dayFormatter = SimpleDateFormat("EEEE", Locale.getDefault())
 
@@ -401,6 +412,9 @@ fun DailyForecastSection(dailyData: List<DailyWeather>) {
             val date = Date(day.dt * 1000L)
             val dayName = dayFormatter.format(date)
             val icon = getWeatherEmoji(day.weather.firstOrNull()?.icon ?: "")
+
+            val maxTemp = formatTemp(day.temp.max, isCelsius)
+            val minTemp = formatTemp(day.temp.min, isCelsius)
 
             Row(
                 modifier = Modifier
@@ -432,7 +446,7 @@ fun DailyForecastSection(dailyData: List<DailyWeather>) {
                         .padding(horizontal = 12.dp)
                 )
                 Text(
-                    "${day.temp.max.toInt()}° / ${day.temp.min.toInt()}°",
+                    "${maxTemp}° / ${minTemp}°",
                     color = colors.text1,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,

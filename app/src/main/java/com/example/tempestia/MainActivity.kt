@@ -44,6 +44,8 @@ import com.example.tempestia.ui.alerts.view.AlertsScreen
 import com.example.tempestia.ui.alerts.viewModel.AlertsViewModel
 import com.example.tempestia.ui.alerts.viewModel.AlertsViewModelFactory
 import com.example.tempestia.ui.settings.view.SettingsScreen
+import com.example.tempestia.ui.settings.viewModel.SettingsViewModel
+import com.example.tempestia.ui.settings.viewModel.SettingsViewModelFactory
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -60,11 +62,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TempestiaTheme {
-                val isSystemDark = isSystemInDarkTheme()
-                val colors = if (isSystemDark) DarkTempestiaColors else LightTempestiaColors
-
                 val context = LocalContext.current
                 val repository = remember { WeatherRepository(context) }
+
+                val isSystemDark = isSystemInDarkTheme()
+                val themePreference by repository.themeModeFlow.collectAsState(initial = "System")
+
+                val colors = when (themePreference) {
+                    "Light" -> LightTempestiaColors
+                    "Dark" -> DarkTempestiaColors
+                    else -> if (isSystemDark) DarkTempestiaColors else LightTempestiaColors
+                }
 
                 CompositionLocalProvider(LocalTempestiaColors provides colors) {
 
@@ -214,7 +222,10 @@ fun TempestiaApp(
                 }
 
                 AppDestinations.SETTINGS -> {
-                    SettingsScreen()
+                    val settingsViewModel: SettingsViewModel = viewModel(
+                        factory = SettingsViewModelFactory(repository)
+                    )
+                    SettingsScreen(settingsViewModel)
                 }
             }
         }

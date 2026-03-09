@@ -17,6 +17,9 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     private var lastRequestedLat: Double? = null
     private var lastRequestedLon: Double? = null
 
+    val isCelsiusFlow = repository.isCelsiusFlow
+    val is24HourFlow = repository.is24HourFlow
+
     private val apiKey = BuildConfig.WEATHER_API_KEY
 
     fun getWeather(lat: Double, lon: Double) {

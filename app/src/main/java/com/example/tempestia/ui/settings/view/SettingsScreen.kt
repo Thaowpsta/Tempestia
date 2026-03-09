@@ -25,14 +25,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
+import com.example.tempestia.ui.settings.viewModel.SettingsViewModel
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(viewModel: SettingsViewModel) {
     val colors = LocalTempestiaColors.current
 
-    var isCelsius by remember { mutableStateOf(true) }
-    var is24Hour by remember { mutableStateOf(false) }
-    var themeMode by remember { mutableStateOf("System") }
+    val isCelsius by viewModel.isCelsiusFlow.collectAsState(initial = true)
+    val is24Hour by viewModel.is24HourFlow.collectAsState(initial = false)
+    val themeMode by viewModel.themeModeFlow.collectAsState(initial = "System")
 
     Box(modifier = Modifier.fillMaxSize().background(colors.bgDeep)) {
 
@@ -72,8 +73,8 @@ fun SettingsScreen() {
                         subtitle = "Used for all forecasts",
                         trailingContent = {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                SettingsChip("°C", isCelsius) { isCelsius = true }
-                                SettingsChip("°F", !isCelsius) { isCelsius = false }
+                                SettingsChip("°C", isCelsius) { viewModel.setCelsius(true) }
+                                SettingsChip("°F", !isCelsius) { viewModel.setCelsius(false) }
                             }
                         }
                     )
@@ -86,8 +87,8 @@ fun SettingsScreen() {
                         subtitle = "12-hour or 24-hour clock",
                         trailingContent = {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                SettingsChip("12h", !is24Hour) { is24Hour = false }
-                                SettingsChip("24h", is24Hour) { is24Hour = true }
+                                SettingsChip("12h", !is24Hour) { viewModel.set24Hour(false) }
+                                SettingsChip("24h", is24Hour) { viewModel.set24Hour(true) }
                             }
                         }
                     )
@@ -118,10 +119,10 @@ fun SettingsScreen() {
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    SettingsChip("Light", themeMode == "Light", Modifier.weight(1f)) { themeMode = "Light" }
-                                    SettingsChip("Dark", themeMode == "Dark", Modifier.weight(1f)) { themeMode = "Dark" }
+                                    SettingsChip("Light", themeMode == "Light", Modifier.weight(1f)) { viewModel.setThemeMode("Light") }
+                                    SettingsChip("Dark", themeMode == "Dark", Modifier.weight(1f)) { viewModel.setThemeMode("Dark") }
                                 }
-                                SettingsChip("System", themeMode == "System", Modifier.fillMaxWidth()) { themeMode = "System" }
+                                SettingsChip("System", themeMode == "System", Modifier.fillMaxWidth()) { viewModel.setThemeMode("System") }
                             }
                         }
                     )
