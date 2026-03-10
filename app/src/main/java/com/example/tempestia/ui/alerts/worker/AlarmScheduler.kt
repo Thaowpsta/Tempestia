@@ -1,4 +1,4 @@
-package com.example.tempestia.worker
+package com.example.tempestia.ui.alerts.worker
 
 import android.app.AlarmManager
 import android.app.PendingIntent

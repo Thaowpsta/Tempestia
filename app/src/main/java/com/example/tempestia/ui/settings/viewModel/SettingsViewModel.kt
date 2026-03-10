@@ -50,7 +50,19 @@ class SettingsViewModel(private val repository: WeatherRepository) : ViewModel()
     }
 
     fun setLanguage(language: String) {
-        viewModelScope.launch { repository.saveLanguage(language) }
+        viewModelScope.launch {
+            repository.saveLanguage(language)
+
+            val savedCities = repository.getAllFavoritesSync()
+
+            for (city in savedCities) {
+                val translatedName = repository.getPreciseLocationName(city.lat, city.lon, languageTag = language)
+
+                if (translatedName != null && translatedName != city.cityName) {
+                    repository.updateFavorite(city.copy(cityName = translatedName))
+                }
+            }
+        }
     }
 }
 

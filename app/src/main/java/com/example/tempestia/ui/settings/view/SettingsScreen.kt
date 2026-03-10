@@ -2,7 +2,12 @@ package com.example.tempestia.ui.settings.view
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,11 +46,46 @@ import com.example.tempestia.ui.settings.viewModel.SettingsViewModel
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.example.tempestia.R
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+
+fun Context.currentConnectivityState(): Flow<Boolean> = callbackFlow {
+    val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    val callback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) { trySend(true) }
+        override fun onLost(network: Network) { trySend(false) }
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+            val isConnected = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            trySend(isConnected)
+        }
+    }
+
+    val request = NetworkRequest.Builder()
+        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        .build()
+
+    connectivityManager.registerNetworkCallback(request, callback)
+
+    val activeNetwork = connectivityManager.activeNetwork
+    val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+    val isConnected = networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    trySend(isConnected)
+
+    awaitClose {
+        connectivityManager.unregisterNetworkCallback(callback)
+    }
+}.distinctUntilChanged()
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Unit = {}) {
     val colors = LocalTempestiaColors.current
     val context = LocalContext.current
+
+    val isOnline by context.currentConnectivityState().collectAsState(initial = true)
+    val noInternetMsg = stringResource(R.string.no_internet)
 
     val isCelsius by viewModel.isCelsiusFlow.collectAsState(initial = true)
     val is24Hour by viewModel.is24HourFlow.collectAsState(initial = false)
@@ -176,11 +216,19 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                         trailingContent = {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 SettingsChip(stringResource(R.string.gps), locationMethod == "GPS") {
-                                    locationMethod = "GPS"
-                                    requestLocationAndFetch()
+                                    if (isOnline) {
+                                        locationMethod = "GPS"
+                                        requestLocationAndFetch()
+                                    } else {
+                                        Toast.makeText(context, noInternetMsg, Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                                 SettingsChip(stringResource(R.string.manual_map), locationMethod == "Map") {
-                                    showMap = true
+                                    if (isOnline) {
+                                        showMap = true
+                                    } else {
+                                        Toast.makeText(context, noInternetMsg, Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             }
                         }
@@ -210,10 +258,14 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                             }
                         },
                         onClick = {
-                            if (locationMethod == "GPS") {
-                                onNavigateToFavorites()
+                            if (isOnline) {
+                                if (locationMethod == "GPS") {
+                                    onNavigateToFavorites()
+                                } else {
+                                    showMap = true
+                                }
                             } else {
-                                showMap = true
+                                Toast.makeText(context, noInternetMsg, Toast.LENGTH_SHORT).show()
                             }
                         }
                     )
@@ -374,7 +426,12 @@ fun SettingsRow(
                 .border(1.dp, colors.purpleBright.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = colors.purpleBright, modifier = Modifier.size(20.dp))
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = colors.purpleBright,
+                modifier = Modifier.size(20.dp)
+            )
         }
 
         Spacer(modifier = Modifier.width(14.dp))

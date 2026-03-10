@@ -33,7 +33,7 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".worker.AlarmReceiver" android:exported="false" />
+        <receiver android:name=".ui.alerts.worker.AlarmReceiver" android:exported="false" />
 
         <activity
             android:name=".ui.alerts.view.AlarmActivity"

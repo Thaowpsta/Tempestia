@@ -96,7 +96,8 @@ class MainActivity : ComponentActivity() {
                     LocalTempestiaColors provides colors,
                     LocalContext provides updatedContext,
                     LocalLayoutDirection provides if (language == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr,
-                    LocalActivityResultRegistryOwner provides requireNotNull(registryOwner)
+                    LocalActivityResultRegistryOwner provides requireNotNull(registryOwner),
+                    LocalConfiguration provides configuration
                 ) {
 
                     val onboardingViewModel: OnboardingViewModel = viewModel(

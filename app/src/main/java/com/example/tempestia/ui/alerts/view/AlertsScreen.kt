@@ -55,7 +55,7 @@ import com.example.tempestia.ui.alerts.viewModel.AlertsViewModel
 import com.example.tempestia.ui.alerts.viewModel.SubscribedAlert
 import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
-import com.example.tempestia.worker.NotificationType
+import com.example.tempestia.ui.alerts.worker.NotificationType
 import java.util.Calendar
 import kotlin.math.roundToInt
 
@@ -96,11 +96,19 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
             onDismissRequest = { alertToEdit = null },
             containerColor = colors.bgCard.copy(alpha = 1f),
             titleContentColor = colors.text1,
-            title = { Text(stringResource(R.string.notification_settings), fontWeight = FontWeight.Bold) },
+            title = {
+                Text(
+                    stringResource(R.string.notification_settings),
+                    fontWeight = FontWeight.Bold
+                )
+            },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        stringResource(R.string.notify_prompt, alertToEdit!!.title),
+                        stringResource(
+                            R.string.notify_prompt,
+                            getLocalizedAlertText(alertToEdit!!.title)
+                        ),
                         color = colors.text3
                     )
 
@@ -149,12 +157,16 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                     ) {
                         // Alarm Permission (Android 12+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+                            val alarmManager =
+                                context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
 
                             if (!alarmManager.canScheduleExactAlarms()) {
-                                val intent = android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                                    data = android.net.Uri.parse("package:${context.packageName}")
-                                }
+                                val intent =
+                                    android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                                        .apply {
+                                            data =
+                                                android.net.Uri.parse("package:${context.packageName}")
+                                        }
                                 context.startActivity(intent)
                                 return@NotificationChoiceRow
                             }
@@ -220,21 +232,35 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
             onDismissRequest = { templateToAdd = null },
             containerColor = colors.bgCard.copy(alpha = 1f),
             titleContentColor = colors.text1,
-            title = { Text(stringResource(R.string.add_alert_title), fontWeight = FontWeight.Bold) },
+            title = {
+                Text(
+                    stringResource(R.string.add_alert_title),
+                    fontWeight = FontWeight.Bold
+                )
+            },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        stringResource(R.string.notify_prompt, templateToAdd!!.title),
+                        stringResource(R.string.notify_prompt, getLocalizedAlertText(templateToAdd!!.title)),
                         color = colors.text3
                     )
 
-                    NotificationChoiceRow(stringResource(R.string.silent_notif), Icons.Filled.NotificationsOff) {
+                    NotificationChoiceRow(
+                        stringResource(R.string.silent_notif),
+                        Icons.Filled.NotificationsOff
+                    ) {
                         handleStandardAdd(NotificationType.SILENT)
                     }
-                    NotificationChoiceRow(stringResource(R.string.push_notif), Icons.Filled.Notifications) {
+                    NotificationChoiceRow(
+                        stringResource(R.string.push_notif),
+                        Icons.Filled.Notifications
+                    ) {
                         handleStandardAdd(NotificationType.PUSH)
                     }
-                    NotificationChoiceRow(stringResource(R.string.sound_notif), Icons.Filled.NotificationsActive) {
+                    NotificationChoiceRow(
+                        stringResource(R.string.sound_notif),
+                        Icons.Filled.NotificationsActive
+                    ) {
                         handleStandardAdd(NotificationType.SOUND)
                     }
 
@@ -479,7 +505,11 @@ fun PermissionWarningBanner(onRequestPermission: () -> Unit) {
             )
         }
         TextButton(onClick = onRequestPermission) {
-            Text(stringResource(R.string.enable_btn), color = Color(0xFFF59E0B), fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.enable_btn),
+                color = Color(0xFFF59E0B),
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
@@ -690,13 +720,13 @@ fun SubscribedAlertCardContent(alert: SubscribedAlert, onToggle: (Boolean) -> Un
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = alert.title,
+                    text = getLocalizedAlertText(alert.title),
                     color = colors.text1,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = alert.subtitle, color = colors.text2, fontSize = 14.sp)
+                Text(text = getLocalizedAlertText(alert.subtitle), color = colors.text2, fontSize = 14.sp)
             }
 
             CustomToggle(checked = alert.isActive, onCheckedChange = onToggle)
@@ -713,7 +743,10 @@ fun SubscribedAlertCardContent(alert: SubscribedAlert, onToggle: (Boolean) -> Un
                 NotificationType.SOUND -> Icons.Filled.NotificationsActive to stringResource(R.string.sound_notif_type)
                 NotificationType.ALARM -> {
                     val timeStr = if (alert.timeHour != null && alert.timeMinute != null) {
-                        val amPm = if (alert.timeHour >= 12) stringResource(R.string.pm) else stringResource(R.string.am)
+                        val amPm =
+                            if (alert.timeHour >= 12) stringResource(R.string.pm) else stringResource(
+                                R.string.am
+                            )
                         val hour12 = if (alert.timeHour % 12 == 0) 12 else alert.timeHour % 12
                         val minuteStr = alert.timeMinute.toString().padStart(2, '0')
                         stringResource(R.string.alarm_at_time, hour12, minuteStr, amPm)

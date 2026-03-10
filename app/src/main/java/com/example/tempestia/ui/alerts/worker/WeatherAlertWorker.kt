@@ -1,17 +1,21 @@
-package com.example.tempestia.worker
+package com.example.tempestia.ui.alerts.worker
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import android.content.res.Configuration
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.tempestia.BuildConfig
+import com.example.tempestia.MainActivity
 import com.example.tempestia.R
 import com.example.tempestia.repository.WeatherRepository
 import kotlinx.coroutines.flow.firstOrNull
+import java.util.Calendar
 
 class WeatherAlertWorker(
     private val context: Context,
@@ -82,9 +86,9 @@ class WeatherAlertWorker(
                     }
 
                     "Morning Summary" -> {
-                        val calendar = java.util.Calendar.getInstance()
-                        val currentHour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
-                        val currentDayOfYear = calendar.get(java.util.Calendar.DAY_OF_YEAR)
+                        val calendar = Calendar.getInstance()
+                        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+                        val currentDayOfYear = calendar.get(Calendar.DAY_OF_YEAR)
 
                         val lastSentDay = prefs.getInt("LastMorningSummaryDay", -1)
 
@@ -132,16 +136,16 @@ class WeatherAlertWorker(
             manager.createNotificationChannel(channel)
         }
 
-        val intent = android.content.Intent(context, com.example.tempestia.MainActivity::class.java).apply {
-            flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("OPEN_TAB", "ALERTS")
         }
 
-        val pendingIntent = android.app.PendingIntent.getActivity(
+        val pendingIntent = PendingIntent.getActivity(
             context,
             0,
             intent,
-            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val notification = NotificationCompat.Builder(context, channelId)

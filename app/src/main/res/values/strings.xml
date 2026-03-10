@@ -16,6 +16,7 @@
     <string name="unknown_location">Unknown Location</string>
     <string name="set_custom_location">Set Custom Location</string>
     <string name="confirm_location">Confirm Location</string>
+    <string name="no_internet">No internet connection. Please connect to update.</string>
 
     <string name="feels_like">FEELS LIKE</string>
     <string name="hourly_forecast">HOURLY FORECAST</string>

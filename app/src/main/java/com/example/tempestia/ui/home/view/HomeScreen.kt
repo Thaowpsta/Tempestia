@@ -77,7 +77,9 @@ fun HomeScreen(
     val isCelsius by weatherViewModel.isCelsiusFlow.collectAsState(initial = true)
     val is24Hour by weatherViewModel.is24HourFlow.collectAsState(initial = false)
 
-    LaunchedEffect(userLocation) {
+    val activeLanguage by weatherViewModel.languageFlow.collectAsState(initial = "en")
+
+    LaunchedEffect(userLocation, activeLanguage) {
         userLocation?.let { (lat, lng) ->
             weatherViewModel.getWeather(lat, lng)
         }

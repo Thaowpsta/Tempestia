@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tempestia.R
 import com.example.tempestia.theme.TempestiaTheme
+import com.example.tempestia.ui.alerts.worker.AlarmScheduler
 import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.DarkTempestiaColors
 import com.example.tempestia.ui.onboarding.view.LightTempestiaColors
@@ -131,7 +132,7 @@ class AlarmActivity : ComponentActivity() {
                                 Button(
                                     onClick = {
                                         stopAlarm()
-                                        com.example.tempestia.worker.AlarmScheduler.snoozeAlarm(
+                                        AlarmScheduler.snoozeAlarm(
                                             applicationContext,
                                             alertId,
                                             title,

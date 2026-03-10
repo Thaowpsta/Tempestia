@@ -1,4 +1,4 @@
-package com.example.tempestia.worker
+package com.example.tempestia.ui.alerts.worker
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.example.tempestia.BuildConfig
+import com.example.tempestia.MainActivity
 import com.example.tempestia.R
 import com.example.tempestia.repository.WeatherRepository
 import com.example.tempestia.ui.alerts.view.AlarmActivity
@@ -72,7 +73,7 @@ class AlarmReceiver : BroadcastReceiver() {
     private fun triggerFullScreenAlarm(context: Context, alertId: String, title: String, message: String) {
 
         val notificationId = alertId.hashCode()
-        val wasInForeground = com.example.tempestia.MainActivity.isAppInForeground
+        val wasInForeground = MainActivity.isAppInForeground
 
         val fullScreenIntent = Intent(context, AlarmActivity::class.java).apply {
             putExtra("ALARM_TITLE", title)

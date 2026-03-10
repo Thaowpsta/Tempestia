@@ -1,6 +1,6 @@
 package com.example.tempestia.ui.alerts.viewModel
 
-import com.example.tempestia.worker.NotificationType
+import com.example.tempestia.ui.alerts.worker.NotificationType
 
 data class SubscribedAlert(
     val id: String,

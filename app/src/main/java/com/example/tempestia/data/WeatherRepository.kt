@@ -8,6 +8,7 @@ import com.example.tempestia.data.favorites.dataSource.local.FavoritesLocalDatas
 import com.example.tempestia.data.favorites.model.FavoriteCity
 import com.example.tempestia.data.settings.dataSource.locale.SettingsLocalDatasource
 import com.example.tempestia.data.weather.dataSource.remote.WeatherRemoteDatasource
+import com.example.tempestia.utils.NetworkUtils.isNetworkAvailable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -28,16 +29,16 @@ class WeatherRepository(private val context: Context) {
 
     val languageFlow = onboardingLocalDatasource.languageFlow
 
-    suspend fun getPreciseLocationName(lat: Double, lon: Double): String? {
+    suspend fun getPreciseLocationName(lat: Double, lon: Double, languageTag: String? = null): String? {
         return withContext(Dispatchers.IO) {
             try {
-                val geocoder = Geocoder(context, Locale.getDefault())
+                val locale = if (languageTag != null) Locale(languageTag) else Locale.getDefault()
+                val geocoder = Geocoder(context, locale)
                 @Suppress("DEPRECATION")
                 val addresses = geocoder.getFromLocation(lat, lon, 1)
 
                 if (!addresses.isNullOrEmpty()) {
                     val address = addresses[0]
-                    // Priority: Neighborhood -> City -> Region
                     address.subLocality ?: address.locality ?: address.adminArea
                 } else null
             } catch (e: Exception) {
@@ -58,6 +59,11 @@ class WeatherRepository(private val context: Context) {
         remoteDatasource.getCoordinatesByName(query, apiKey, limit)
 
     fun getFavoriteCities(): Flow<List<FavoriteCity>> = FavoriteslocalDatasource.getAllFavorites()
+
+    suspend fun getAllFavoritesSync(): List<FavoriteCity> = FavoriteslocalDatasource.getAllFavoritesSync()
+    suspend fun updateFavorite(city: FavoriteCity) = FavoriteslocalDatasource.updateFavorite(city)
+    suspend fun getCityByLatLng(lat: Double, lon: Double) = FavoriteslocalDatasource.getCityByLatLng(lat, lon)
+
     suspend fun insertFavorite(city: FavoriteCity) = FavoriteslocalDatasource.insertFavorite(city)
     suspend fun deleteFavorite(city: FavoriteCity) = FavoriteslocalDatasource.deleteFavorite(city)
     suspend fun setCityAsCurrent(city: FavoriteCity) = FavoriteslocalDatasource.setCityAsCurrent(city)
@@ -70,4 +76,8 @@ class WeatherRepository(private val context: Context) {
     suspend fun saveThemeMode(themeMode: String) = onboardingLocalDatasource.saveThemeMode(themeMode)
 
     suspend fun saveLanguage(language: String) = onboardingLocalDatasource.saveLanguage(language)
+
+    fun isNetworkAvailable(): Boolean {
+        return isNetworkAvailable(context)
+    }
 }

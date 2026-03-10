@@ -33,27 +33,41 @@ class FavoritesViewModel(private val repository: WeatherRepository) : ViewModel(
             repository.getFavoriteCities().collectLatest { cities ->
                 _favoriteWeather.value = cities.map { FavoriteWeatherState(city = it, isLoading = true) }
 
+                val isOnline = repository.isNetworkAvailable()
+
                 val weatherUpdates = cities.map { city ->
                     async {
-                        try {
-                            val response = repository.getWeather(city.lat, city.lon, apiKey)
-                            if (response.isSuccessful && response.body() != null) {
-                                val current = response.body()!!.current
-                                FavoriteWeatherState(
-                                    city = city,
-                                    temp = current.temp,
-                                    condition = current.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() },
-                                    iconCode = current.weather.firstOrNull()?.icon,
-                                    humidity = current.humidity,
-                                    windSpeed = current.windSpeed,
-                                    uvi = current.uvi,
-                                    isLoading = false
-                                )
-                            } else {
-                                FavoriteWeatherState(city, isLoading = false)
+                        if (isOnline) {
+                            try {
+                                val response = repository.getWeather(city.lat, city.lon, apiKey)
+                                if (response.isSuccessful && response.body() != null) {
+                                    val weather = response.body()!!
+                                    val current = weather.current
+
+                                    // 🚨 Save offline cache
+                                    val json = com.google.gson.Gson().toJson(weather)
+                                    if (city.cachedWeather != json) {
+                                        repository.updateFavorite(city.copy(cachedWeather = json))
+                                    }
+
+                                    FavoriteWeatherState(
+                                        city = city,
+                                        temp = current.temp,
+                                        condition = current.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() },
+                                        iconCode = current.weather.firstOrNull()?.icon,
+                                        humidity = current.humidity,
+                                        windSpeed = current.windSpeed,
+                                        uvi = current.uvi,
+                                        isLoading = false
+                                    )
+                                } else {
+                                    loadFromCache(city)
+                                }
+                            } catch (e: Exception) {
+                                loadFromCache(city)
                             }
-                        } catch (e: Exception) {
-                            FavoriteWeatherState(city, isLoading = false)
+                        } else {
+                            loadFromCache(city)
                         }
                     }
                 }.awaitAll()
@@ -69,6 +83,11 @@ class FavoritesViewModel(private val repository: WeatherRepository) : ViewModel(
                     if (query.isBlank()) {
                         _apiSearchResults.value = null
                         _isSearchingApi.value = false
+                        return@collectLatest
+                    }
+
+                    if (!repository.isNetworkAvailable()) {
+                        _apiSearchResults.value = emptyList()
                         return@collectLatest
                     }
 
@@ -90,27 +109,36 @@ class FavoritesViewModel(private val repository: WeatherRepository) : ViewModel(
         }
     }
 
-    fun onApiSearchQueryChanged(query: String) {
-        _apiSearchQuery.value = query
+    // 🚨 OFFLINE ENGINE
+    private fun loadFromCache(city: FavoriteCity): FavoriteWeatherState {
+        return if (city.cachedWeather != null) {
+            try {
+                val weather = com.google.gson.Gson().fromJson(city.cachedWeather, com.example.tempestia.data.weather.model.WeatherResponse::class.java)
+                val current = weather.current
+                FavoriteWeatherState(
+                    city = city,
+                    temp = current.temp,
+                    condition = current.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() },
+                    iconCode = current.weather.firstOrNull()?.icon,
+                    humidity = current.humidity,
+                    windSpeed = current.windSpeed,
+                    uvi = current.uvi,
+                    isLoading = false
+                )
+            } catch(e: Exception) {
+                FavoriteWeatherState(city = city, isLoading = false, condition = "Offline Error")
+            }
+        } else {
+            FavoriteWeatherState(city = city, isLoading = false, condition = "Offline")
+        }
     }
 
-    fun clearApiSearch() {
-        _apiSearchQuery.value = ""
-        _apiSearchResults.value = null
-    }
-
-    fun removeCity(city: FavoriteCity) {
-        viewModelScope.launch { repository.deleteFavorite(city) }
-    }
-
+    fun onApiSearchQueryChanged(query: String) { _apiSearchQuery.value = query }
+    fun clearApiSearch() { _apiSearchQuery.value = ""; _apiSearchResults.value = null }
+    fun removeCity(city: FavoriteCity) { viewModelScope.launch { repository.deleteFavorite(city) } }
     fun addFavorite(geoResponse: GeoResponse) {
         viewModelScope.launch {
-            val newFavorite = FavoriteCity(
-                cityName = geoResponse.name,
-                lat = geoResponse.lat,
-                lon = geoResponse.lon,
-                country = geoResponse.country
-            )
+            val newFavorite = FavoriteCity(cityName = geoResponse.name, lat = geoResponse.lat, lon = geoResponse.lon, country = geoResponse.country)
             repository.insertFavorite(newFavorite)
         }
     }
