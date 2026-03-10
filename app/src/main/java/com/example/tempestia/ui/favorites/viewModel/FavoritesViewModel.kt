@@ -27,6 +27,33 @@ class FavoritesViewModel(private val repository: WeatherRepository) : ViewModel(
 
     private val _isSearchingApi = MutableStateFlow(false)
     val isSearchingApi: StateFlow<Boolean> = _isSearchingApi.asStateFlow()
+    private val _localSearchQuery = MutableStateFlow("")
+    val localSearchQuery: StateFlow<String> = _localSearchQuery.asStateFlow()
+
+    private val _showAddSearchDialog = MutableStateFlow(false)
+    val showAddSearchDialog: StateFlow<Boolean> = _showAddSearchDialog.asStateFlow()
+
+    private val _cityToConfirmAdd = MutableStateFlow<GeoResponse?>(null)
+    val cityToConfirmAdd: StateFlow<GeoResponse?> = _cityToConfirmAdd.asStateFlow()
+
+    private val _cityToConfirmDelete = MutableStateFlow<FavoriteCity?>(null)
+    val cityToConfirmDelete: StateFlow<FavoriteCity?> = _cityToConfirmDelete.asStateFlow()
+
+    fun updateLocalSearchQuery(query: String) {
+        _localSearchQuery.value = query
+    }
+
+    fun setShowAddSearchDialog(show: Boolean) {
+        _showAddSearchDialog.value = show
+    }
+
+    fun setCityToConfirmAdd(city: GeoResponse?) {
+        _cityToConfirmAdd.value = city
+    }
+
+    fun setCityToConfirmDelete(city: FavoriteCity?) {
+        _cityToConfirmDelete.value = city
+    }
 
     init {
         viewModelScope.launch {

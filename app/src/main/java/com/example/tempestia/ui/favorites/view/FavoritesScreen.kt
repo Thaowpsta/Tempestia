@@ -51,18 +51,18 @@ fun FavoritesScreen(
 
     val favoriteWeather by viewModel.favoriteWeather.collectAsState()
 
-    var localSearchQuery by remember { mutableStateOf("") }
+    val localSearchQuery by viewModel.localSearchQuery.collectAsState()
+    val showAddSearchDialog by viewModel.showAddSearchDialog.collectAsState()
+    val cityToConfirmAdd by viewModel.cityToConfirmAdd.collectAsState()
+    val cityToConfirmDelete by viewModel.cityToConfirmDelete.collectAsState()
+
     val filteredWeather = favoriteWeather.filter {
         it.city.cityName.contains(localSearchQuery, ignoreCase = true)
     }
 
-    var showAddSearchDialog by remember { mutableStateOf(false) }
-    var cityToConfirmAdd by remember { mutableStateOf<GeoResponse?>(null) }
-    var cityToConfirmDelete by remember { mutableStateOf<FavoriteCity?>(null) }
-
     if (cityToConfirmAdd != null) {
         AlertDialog(
-            onDismissRequest = { cityToConfirmAdd = null },
+            onDismissRequest = { viewModel.setCityToConfirmAdd(null) },
             containerColor = colors.bgCard.copy(alpha = 1f),
             titleContentColor = colors.text1,
             textContentColor = colors.text3,
@@ -78,15 +78,15 @@ fun FavoritesScreen(
             confirmButton = {
                 TextButton(onClick = {
                     cityToConfirmAdd?.let { viewModel.addFavorite(it) }
-                    cityToConfirmAdd = null
-                    showAddSearchDialog = false
+                    viewModel.setCityToConfirmAdd(null)
+                    viewModel.setShowAddSearchDialog(false)
                     viewModel.clearApiSearch()
                 }) {
                     Text(stringResource(R.string.add_city_btn), color = colors.purpleBright, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { cityToConfirmAdd = null }) {
+                TextButton(onClick = { viewModel.setCityToConfirmAdd(null) }) {
                     Text(
                         stringResource(R.string.cancel_btn),
                         color = colors.text3
@@ -98,7 +98,7 @@ fun FavoritesScreen(
 
     if (cityToConfirmDelete != null) {
         AlertDialog(
-            onDismissRequest = { cityToConfirmDelete = null },
+            onDismissRequest = { viewModel.setCityToConfirmDelete(null) },
             containerColor = colors.bgCard.copy(alpha = 1f),
             titleContentColor = colors.text1,
             textContentColor = colors.text3,
@@ -107,13 +107,13 @@ fun FavoritesScreen(
             confirmButton = {
                 TextButton(onClick = {
                     cityToConfirmDelete?.let { viewModel.removeCity(it) }
-                    cityToConfirmDelete = null
+                    viewModel.setCityToConfirmDelete(null)
                 }) {
                     Text(stringResource(R.string.remove_btn), color = Color(0xFFFF4B4B), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { cityToConfirmDelete = null }) {
+                TextButton(onClick = { viewModel.setCityToConfirmDelete(null) }) {
                     Text(
                         stringResource(R.string.cancel_btn),
                         color = colors.text3
@@ -137,7 +137,7 @@ fun FavoritesScreen(
         ) {
             OutlinedTextField(
                 value = localSearchQuery,
-                onValueChange = { localSearchQuery = it },
+                onValueChange = { viewModel.updateLocalSearchQuery(it) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(32.dp))
@@ -180,7 +180,7 @@ fun FavoritesScreen(
                 items(filteredWeather, key = { it.city.cityName }) { state ->
                     StableSwipeToDismissCard(
                         state = state,
-                        onDeleteRequest = { cityToConfirmDelete = state.city },
+                        onDeleteRequest = { viewModel.setCityToConfirmDelete(state.city) },
                         onClick = {
                             onCitySelected(
                                 state.city.lat,
@@ -194,7 +194,7 @@ fun FavoritesScreen(
         }
 
         FloatingActionButton(
-            onClick = { showAddSearchDialog = true },
+            onClick = { viewModel.setShowAddSearchDialog(true) },
             containerColor = colors.purpleBright,
             shape = CircleShape,
             modifier = Modifier
@@ -220,7 +220,7 @@ fun FavoritesScreen(
 
         ModalBottomSheet(
             onDismissRequest = {
-                showAddSearchDialog = false
+                viewModel.setShowAddSearchDialog(false)
                 viewModel.clearApiSearch()
             },
             sheetState = sheetState,
@@ -278,7 +278,7 @@ fun FavoritesScreen(
                 } else {
                     LazyColumn(modifier = Modifier.heightIn(max = 350.dp)) {
                         itemsIndexed(apiSearchResults ?: emptyList()) { index, result ->
-                            SearchResultRow(result) { cityToConfirmAdd = result }
+                            SearchResultRow(result) { viewModel.setCityToConfirmAdd(result) }
                             if (index < (apiSearchResults?.size ?: 0) - 1) {
                                 HorizontalDivider(color = colors.glassBorder.copy(alpha = 0.5f))
                             }
@@ -296,6 +296,7 @@ fun StableSwipeToDismissCard(
     onDeleteRequest: () -> Unit,
     onClick: () -> Unit
 ) {
+    //This MUST remain mutableFloatStateOf. to prevent UI jank.
     var offsetX by remember { mutableFloatStateOf(0f) }
     val animatedOffsetX by animateFloatAsState(targetValue = offsetX, label = "swipe")
     val colors = LocalTempestiaColors.current

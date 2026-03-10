@@ -3,7 +3,6 @@ package com.example.tempestia.ui.alerts.view
 import android.Manifest
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -46,7 +45,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tempestia.R
 import com.example.tempestia.ui.alerts.viewModel.AlertLevel
@@ -58,6 +56,7 @@ import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.ui.alerts.worker.NotificationType
 import java.util.Calendar
 import kotlin.math.roundToInt
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,32 +67,20 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
     val subscribedAlerts by viewModel.subscribedAlerts.collectAsState()
     val availableTemplates by viewModel.availableTemplatesFlow.collectAsState()
 
-    var showAddSheet by remember { mutableStateOf(false) }
-    var alertToEdit by remember { mutableStateOf<SubscribedAlert?>(null) }
-    var templateToAdd by remember { mutableStateOf<AlertItem?>(null) }
-
-    var hasNotificationPermission by remember {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            mutableStateOf(
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
-            )
-        } else {
-            mutableStateOf(true) // Always true on Android 12 and below
-        }
-    }
+    val showAddSheet by viewModel.showAddSheet.collectAsState()
+    val alertToEdit by viewModel.alertToEdit.collectAsState()
+    val templateToAdd by viewModel.templateToAdd.collectAsState()
+    val hasNotificationPermission by viewModel.hasNotificationPermission.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        hasNotificationPermission = isGranted
+        viewModel.setHasNotificationPermission(isGranted)
     }
 
     if (alertToEdit != null) {
         AlertDialog(
-            onDismissRequest = { alertToEdit = null },
+            onDismissRequest = { viewModel.setAlertToEdit(null) },
             containerColor = colors.bgCard.copy(alpha = 1f),
             titleContentColor = colors.text1,
             title = {
@@ -122,7 +109,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                             newType = NotificationType.SILENT,
                             context = context
                         )
-                        alertToEdit = null
+                        viewModel.setAlertToEdit(null)
                     }
                     NotificationChoiceRow(
                         stringResource(R.string.push_notif),
@@ -134,7 +121,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                             newType = NotificationType.PUSH,
                             context = context
                         )
-                        alertToEdit = null
+                        viewModel.setAlertToEdit(null)
                     }
                     NotificationChoiceRow(
                         stringResource(R.string.sound_notif),
@@ -146,7 +133,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                             newType = NotificationType.SOUND,
                             context = context
                         )
-                        alertToEdit = null
+                        viewModel.setAlertToEdit(null)
                     }
 
                     NotificationChoiceRow(
@@ -165,7 +152,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                                     android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
                                         .apply {
                                             data =
-                                                android.net.Uri.parse("package:${context.packageName}")
+                                                "package:${context.packageName}".toUri()
                                         }
                                 context.startActivity(intent)
                                 return@NotificationChoiceRow
@@ -173,20 +160,18 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         }
 
                         // "Display Over Other Apps" Permission
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            if (!android.provider.Settings.canDrawOverlays(context)) {
-                                android.widget.Toast.makeText(
-                                    context,
-                                    context.getString(R.string.display_over_apps_prompt),
-                                    android.widget.Toast.LENGTH_LONG
-                                ).show()
-                                val intent = android.content.Intent(
-                                    android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                    android.net.Uri.parse("package:${context.packageName}")
-                                )
-                                context.startActivity(intent)
-                                return@NotificationChoiceRow
-                            }
+                        if (!android.provider.Settings.canDrawOverlays(context)) {
+                            android.widget.Toast.makeText(
+                                context,
+                                context.getString(R.string.display_over_apps_prompt),
+                                android.widget.Toast.LENGTH_LONG
+                            ).show()
+                            val intent = android.content.Intent(
+                                android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                "package:${context.packageName}".toUri()
+                            )
+                            context.startActivity(intent)
+                            return@NotificationChoiceRow
                         }
 
                         val calendar = Calendar.getInstance()
@@ -200,7 +185,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                                     minute = selectedMinute,
                                     context = context
                                 )
-                                alertToEdit = null
+                                viewModel.setAlertToEdit(null)
                             },
                             calendar.get(Calendar.HOUR_OF_DAY),
                             calendar.get(Calendar.MINUTE),
@@ -211,7 +196,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { alertToEdit = null }) {
+                TextButton(onClick = { viewModel.setAlertToEdit(null) }) {
                     Text(stringResource(R.string.cancel_btn), color = colors.text3)
                 }
             }
@@ -221,15 +206,15 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
     if (templateToAdd != null) {
         val handleStandardAdd = { notifType: NotificationType ->
             viewModel.addAlert(templateToAdd!!, notifType)
-            templateToAdd = null
-            showAddSheet = false
+            viewModel.setTemplateToAdd(null)
+            viewModel.setShowAddSheet(false)
             if (!hasNotificationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
 
         AlertDialog(
-            onDismissRequest = { templateToAdd = null },
+            onDismissRequest = { viewModel.setTemplateToAdd(null) },
             containerColor = colors.bgCard.copy(alpha = 1f),
             titleContentColor = colors.text1,
             title = {
@@ -277,26 +262,24 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                                     android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
                                         .apply {
                                             data =
-                                                android.net.Uri.parse("package:${context.packageName}")
+                                                "package:${context.packageName}".toUri()
                                         }
                                 context.startActivity(intent)
                                 return@NotificationChoiceRow
                             }
                         }
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            if (!android.provider.Settings.canDrawOverlays(context)) {
-                                android.widget.Toast.makeText(
-                                    context,
-                                    context.getString(R.string.display_over_apps_prompt),
-                                    android.widget.Toast.LENGTH_LONG
-                                ).show()
-                                val intent = android.content.Intent(
-                                    android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                    android.net.Uri.parse("package:${context.packageName}")
-                                )
-                                context.startActivity(intent)
-                                return@NotificationChoiceRow
-                            }
+                        if (!android.provider.Settings.canDrawOverlays(context)) {
+                            android.widget.Toast.makeText(
+                                context,
+                                context.getString(R.string.display_over_apps_prompt),
+                                android.widget.Toast.LENGTH_LONG
+                            ).show()
+                            val intent = android.content.Intent(
+                                android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                android.net.Uri.parse("package:${context.packageName}")
+                            )
+                            context.startActivity(intent)
+                            return@NotificationChoiceRow
                         }
 
                         val calendar = Calendar.getInstance()
@@ -309,8 +292,8 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                                     hour = selectedHour,
                                     minute = selectedMinute
                                 )
-                                templateToAdd = null
-                                showAddSheet = false
+                                viewModel.setTemplateToAdd(null)
+                                viewModel.setShowAddSheet(false)
                             },
                             calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false
                         ).show()
@@ -319,7 +302,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { templateToAdd = null }) {
+                TextButton(onClick = { viewModel.setTemplateToAdd(null) }) {
                     Text(stringResource(R.string.cancel_btn), color = colors.text3)
                 }
             }
@@ -396,7 +379,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         StableSwipeToDismissAlertCard(
                             alert = alert,
                             onDeleteRequest = { viewModel.removeAlert(alert.id) },
-                            onClick = { alertToEdit = alert },
+                            onClick = { viewModel.setAlertToEdit(alert) },
                             onToggle = { isActive ->
                                 viewModel.updateAlert(
                                     alert,
@@ -411,7 +394,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
         }
 
         FloatingActionButton(
-            onClick = { showAddSheet = true },
+            onClick = { viewModel.setShowAddSheet(true) },
             containerColor = colors.purpleBright,
             shape = CircleShape,
             modifier = Modifier
@@ -430,7 +413,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
         if (showAddSheet) {
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             ModalBottomSheet(
-                onDismissRequest = { showAddSheet = false },
+                onDismissRequest = { viewModel.setShowAddSheet(false) },
                 sheetState = sheetState,
                 containerColor = colors.bgDeep,
                 dragHandle = { BottomSheetDefaults.DragHandle(color = colors.text3) }
@@ -459,8 +442,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                         LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
                             items(availableTemplates) { template ->
                                 TemplateRow(template) {
-                                    // 🚨 NEW: Open the selection dialog instead of instantly adding!
-                                    templateToAdd = template
+                                    viewModel.setTemplateToAdd(template)
                                 }
                             }
                         }
@@ -628,6 +610,8 @@ fun StableSwipeToDismissAlertCard(
     onClick: () -> Unit,
     onToggle: (Boolean) -> Unit
 ) {
+
+    // This MUST remain mutableFloatStateOf. prevent UI jank.
     var offsetX by remember { mutableFloatStateOf(0f) }
     val animatedOffsetX by animateFloatAsState(targetValue = offsetX, label = "swipe")
     val colors = LocalTempestiaColors.current

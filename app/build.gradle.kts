@@ -9,7 +9,6 @@ plugins {
 android {
     namespace = "com.example.tempestia"
     compileSdk = 36
-    val mapsApiKey: String = project.findProperty("MAPS_API_KEY") as String? ?: ""
 
     defaultConfig {
         applicationId = "com.example.tempestia"
@@ -18,7 +17,6 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
 
         val localProperties = Properties()
         val localPropertiesFile = rootProject.file("local.properties")
@@ -28,6 +26,9 @@ android {
         val weatherApiKey = localProperties.getProperty("WEATHER_API_KEY") ?: ""
 
         buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
+
+        val mapsApiKey = localProperties.getProperty("MAPS_API_KEY") ?: ""
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

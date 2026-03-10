@@ -1,6 +1,5 @@
 package com.example.tempestia.ui.onboarding.view
 
-import android.location.Geocoder
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,16 +20,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tempestia.R
+import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.util.Locale
 
 @Composable
 fun MapScreen(
+    viewModel: OnboardingViewModel = viewModel(),
     onBack: () -> Unit,
     onLocationSelected: (Double, Double) -> Unit
 ) {
@@ -43,34 +42,18 @@ fun MapScreen(
         position = CameraPosition.fromLatLngZoom(alexandria, 12f)
     }
 
-    var addressText by remember {
-        mutableStateOf(context.getString(R.string.drag_map_instruction))
-    }
-    var hasDragged by remember { mutableStateOf(false) }
+    val addressTextState by viewModel.addressText.collectAsState()
+    val hasDragged by viewModel.hasDragged.collectAsState()
+
+    val addressText = addressTextState ?: context.getString(R.string.drag_map_instruction)
 
     LaunchedEffect(cameraPositionState.isMoving) {
         if (cameraPositionState.isMoving) {
-            hasDragged = true
-            addressText = context.getString(R.string.updating_location)
+            viewModel.setHasDragged(true)
+            viewModel.setAddressText(context.getString(R.string.updating_location))
         } else if (hasDragged) {
             val target = cameraPositionState.position.target
-            withContext(Dispatchers.IO) {
-                addressText = try {
-                    val geocoder = Geocoder(context, Locale.getDefault())
-
-                    @Suppress("DEPRECATION")
-                    val addresses = geocoder.getFromLocation(target.latitude, target.longitude, 1)
-
-                    if (!addresses.isNullOrEmpty()) {
-                        addresses[0].getAddressLine(0) ?: context.getString(R.string.unknown_location)
-                    } else {
-                        String.format(Locale.US, "Lat: %.4f, Lng: %.4f", target.latitude, target.longitude)
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("MapScreen", "Geocoder failed to find address", e)
-                    String.format(Locale.US, "Lat: %.4f, Lng: %.4f", target.latitude, target.longitude)
-                }
-            }
+            viewModel.fetchAddressFromLatLng(context, target.latitude, target.longitude)
         }
     }
 

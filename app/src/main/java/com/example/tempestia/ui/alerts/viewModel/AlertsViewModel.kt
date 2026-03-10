@@ -1,6 +1,10 @@
 package com.example.tempestia.ui.alerts.viewModel
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -23,6 +27,32 @@ class AlertsViewModel(
 ) : ViewModel() {
 
     private val workManager = WorkManager.getInstance(context)
+
+    private val _showAddSheet = MutableStateFlow(false)
+    val showAddSheet: StateFlow<Boolean> = _showAddSheet.asStateFlow()
+
+    private val _alertToEdit = MutableStateFlow<SubscribedAlert?>(null)
+    val alertToEdit: StateFlow<SubscribedAlert?> = _alertToEdit.asStateFlow()
+
+    private val _templateToAdd = MutableStateFlow<AlertItem?>(null)
+    val templateToAdd: StateFlow<AlertItem?> = _templateToAdd.asStateFlow()
+
+    private val _hasNotificationPermission = MutableStateFlow(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true // Always true on Android 12 and below
+        }
+    )
+    val hasNotificationPermission: StateFlow<Boolean> = _hasNotificationPermission.asStateFlow()
+
+    fun setShowAddSheet(show: Boolean) { _showAddSheet.value = show }
+    fun setAlertToEdit(alert: SubscribedAlert?) { _alertToEdit.value = alert }
+    fun setTemplateToAdd(template: AlertItem?) { _templateToAdd.value = template }
+    fun setHasNotificationPermission(granted: Boolean) { _hasNotificationPermission.value = granted }
 
     val subscribedAlerts: StateFlow<List<SubscribedAlert>> = repository.getSubscribedAlerts()
         .map { entities ->
@@ -98,7 +128,6 @@ class AlertsViewModel(
             )
             repository.insertAlert(updatedEntity)
 
-            // --- THE SCHEDULER LOGIC ---
             if (finalActive && finalType == NotificationType.ALARM && finalHour != null && finalMinute != null) {
                 AlarmScheduler.scheduleAlarm(context, alert.id, alert.title, finalHour, finalMinute)
             } else {

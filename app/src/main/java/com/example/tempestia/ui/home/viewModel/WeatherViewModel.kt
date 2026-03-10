@@ -16,9 +16,6 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     private val _weatherState: MutableStateFlow<WeatherState> = MutableStateFlow(WeatherState.Idle)
     val weatherState: StateFlow<WeatherState> = _weatherState.asStateFlow()
 
-    private var lastRequestedLat: Double? = null
-    private var lastRequestedLon: Double? = null
-
     val isCelsiusFlow = repository.isCelsiusFlow
     val is24HourFlow = repository.is24HourFlow
     val languageFlow = repository.languageFlow

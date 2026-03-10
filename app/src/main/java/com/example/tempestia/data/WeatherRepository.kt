@@ -2,10 +2,12 @@ package com.example.tempestia.repository
 
 import android.content.Context
 import android.location.Geocoder
+import android.location.Location
 import com.example.tempestia.data.alerts.dataSource.locale.AlertsLocalDatasource
 import com.example.tempestia.data.alerts.model.Alert
 import com.example.tempestia.data.favorites.dataSource.local.FavoritesLocalDatasource
 import com.example.tempestia.data.favorites.model.FavoriteCity
+import com.example.tempestia.data.settings.dataSource.locale.LocationDataSource
 import com.example.tempestia.data.settings.dataSource.locale.SettingsLocalDatasource
 import com.example.tempestia.data.weather.dataSource.remote.WeatherRemoteDatasource
 import com.example.tempestia.utils.NetworkUtils.isNetworkAvailable
@@ -79,5 +81,10 @@ class WeatherRepository(private val context: Context) {
 
     fun isNetworkAvailable(): Boolean {
         return isNetworkAvailable(context)
+    }
+
+    suspend fun fetchDeviceLocation(): Location? {
+        val tracker = LocationDataSource(context)
+        return tracker.getCurrentLocation()
     }
 }

@@ -46,9 +46,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 import com.example.tempestia.R
+import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 
@@ -104,13 +106,17 @@ val LocalTempestiaColors = staticCompositionLocalOf { LightTempestiaColors }
 
 
 @Composable
-fun OnboardingScreen(onFinished: (Double?, Double?) -> Unit, onOpenMap: () -> Unit) {
+fun OnboardingScreen(
+    viewModel: OnboardingViewModel = viewModel(),
+    onFinished: (Double?, Double?) -> Unit,
+    onOpenMap: () -> Unit
+) {
     val isSystemDark = isSystemInDarkTheme()
     val colors = if (isSystemDark) DarkTempestiaColors else LightTempestiaColors
 
     CompositionLocalProvider(LocalTempestiaColors provides colors) {
 
-        var currentScreen by remember { mutableIntStateOf(0) }
+        val currentScreen by viewModel.currentScreen.collectAsState()
         val currentColors = LocalTempestiaColors.current
 
         Box(modifier = Modifier.fillMaxSize().background(currentColors.bgDeep)) {
@@ -126,13 +132,14 @@ fun OnboardingScreen(onFinished: (Double?, Double?) -> Unit, onOpenMap: () -> Un
                 label = "OnboardingTransition"
             ) { screen ->
                 when (screen) {
-                    0 -> SplashScreen(onEnter = { currentScreen = 1 })
+                    0 -> SplashScreen(onEnter = { viewModel.setCurrentScreen(1) })
                     1 -> FeaturesScreen(
-                        onSkip = { currentScreen = 2 },
-                        onNext = { currentScreen = 2 }
+                        onSkip = { viewModel.setCurrentScreen(2) },
+                        onNext = { viewModel.setCurrentScreen(2) }
                     )
                     2 -> PermissionsScreen(
-                        onBack = { currentScreen = 1 },
+                        viewModel = viewModel,
+                        onBack = { viewModel.setCurrentScreen(1) },
                         onFinish = onFinished,
                         onOpenMap = onOpenMap
                     )
@@ -144,6 +151,7 @@ fun OnboardingScreen(onFinished: (Double?, Double?) -> Unit, onOpenMap: () -> Un
 
 @Composable
 fun PermissionsScreen(
+    viewModel: OnboardingViewModel,
     onBack: () -> Unit,
     onFinish: (Double?, Double?) -> Unit,
     onOpenMap: () -> Unit
@@ -152,14 +160,15 @@ fun PermissionsScreen(
     val context = LocalContext.current
 
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-    var isFetchingLocation by remember { mutableStateOf(false) }
+
+    val isFetchingLocation by viewModel.isFetchingLocation.collectAsState()
 
     @SuppressLint("MissingPermission")
     fun fetchLocationAndFinish() {
-        isFetchingLocation = true
+        viewModel.setIsFetchingLocation(true)
         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
             .addOnSuccessListener { location ->
-                isFetchingLocation = false
+                viewModel.setIsFetchingLocation(false)
                 if (location != null) {
                     onFinish(location.latitude, location.longitude)
                 } else {
@@ -168,7 +177,7 @@ fun PermissionsScreen(
                 }
             }
             .addOnFailureListener {
-                isFetchingLocation = false
+                viewModel.setIsFetchingLocation(false)
                 Toast.makeText(context, context.getString(R.string.toast_location_failed), Toast.LENGTH_LONG).show()
                 onOpenMap()
             }
