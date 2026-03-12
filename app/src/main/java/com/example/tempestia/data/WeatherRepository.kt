@@ -16,20 +16,22 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-class WeatherRepository(private val context: Context) {
-    private val remoteDatasource = WeatherRemoteDatasource()
-    private val FavoriteslocalDatasource = FavoritesLocalDatasource(context)
-    private val onboardingLocalDatasource = SettingsLocalDatasource(context)
-    private val alertsLocalDataSource = AlertsLocalDatasource(context)
+class WeatherRepository(
+    private val context: Context,
+    private val remoteDatasource: WeatherRemoteDatasource = WeatherRemoteDatasource(),
+    private val favoritesLocalDatasource: FavoritesLocalDatasource = FavoritesLocalDatasource(context),
+    private val alertsLocalDatasource: AlertsLocalDatasource = AlertsLocalDatasource(context),
+    private val settingsLocalDatasource: SettingsLocalDatasource = SettingsLocalDatasource(context)
+) {
 
-    val isOnboardingCompleted = onboardingLocalDatasource.isOnboardingCompleted
-    val locationFlow = onboardingLocalDatasource.locationFlow
+    val isOnboardingCompleted = settingsLocalDatasource.isOnboardingCompleted
+    val locationFlow = settingsLocalDatasource.locationFlow
 
-    val isCelsiusFlow = onboardingLocalDatasource.isCelsiusFlow
-    val is24HourFlow = onboardingLocalDatasource.is24HourFlow
-    val themeModeFlow = onboardingLocalDatasource.themeModeFlow
+    val isCelsiusFlow = settingsLocalDatasource.isCelsiusFlow
+    val is24HourFlow = settingsLocalDatasource.is24HourFlow
+    val themeModeFlow = settingsLocalDatasource.themeModeFlow
 
-    val languageFlow = onboardingLocalDatasource.languageFlow
+    val languageFlow = settingsLocalDatasource.languageFlow
 
     suspend fun getPreciseLocationName(lat: Double, lon: Double, languageTag: String? = null): String? {
         return withContext(Dispatchers.IO) {
@@ -49,9 +51,9 @@ class WeatherRepository(private val context: Context) {
         }
     }
 
-    suspend fun completeOnboarding() = onboardingLocalDatasource.completeOnboarding()
+    suspend fun completeOnboarding() = settingsLocalDatasource.completeOnboarding()
 
-    suspend fun saveLocation(lat: Double, lng: Double) = onboardingLocalDatasource.saveLocation(lat, lng)
+    suspend fun saveLocation(lat: Double, lng: Double) = settingsLocalDatasource.saveLocation(lat, lng)
 
     suspend fun getWeather(lat: Double, lon: Double, apiKey: String) =
         remoteDatasource.getCurrentWeather(lat, lon, apiKey)
@@ -60,24 +62,24 @@ class WeatherRepository(private val context: Context) {
     suspend fun getCoordinatesByName(query: String, apiKey: String, limit: Int = 5) =
         remoteDatasource.getCoordinatesByName(query, apiKey, limit)
 
-    fun getFavoriteCities(): Flow<List<FavoriteCity>> = FavoriteslocalDatasource.getAllFavorites()
+    fun getFavoriteCities(): Flow<List<FavoriteCity>> = favoritesLocalDatasource.getAllFavorites()
 
-    suspend fun getAllFavoritesSync(): List<FavoriteCity> = FavoriteslocalDatasource.getAllFavoritesSync()
-    suspend fun updateFavorite(city: FavoriteCity) = FavoriteslocalDatasource.updateFavorite(city)
-    suspend fun getCityByLatLng(lat: Double, lon: Double) = FavoriteslocalDatasource.getCityByLatLng(lat, lon)
+    suspend fun getAllFavoritesSync(): List<FavoriteCity> = favoritesLocalDatasource.getAllFavoritesSync()
+    suspend fun updateFavorite(city: FavoriteCity) = favoritesLocalDatasource.updateFavorite(city)
+    suspend fun getCityByLatLng(lat: Double, lon: Double) = favoritesLocalDatasource.getCityByLatLng(lat, lon)
 
-    suspend fun insertFavorite(city: FavoriteCity) = FavoriteslocalDatasource.insertFavorite(city)
-    suspend fun deleteFavorite(city: FavoriteCity) = FavoriteslocalDatasource.deleteFavorite(city)
-    suspend fun setCityAsCurrent(city: FavoriteCity) = FavoriteslocalDatasource.setCityAsCurrent(city)
-    fun getSubscribedAlerts(): Flow<List<Alert>> = alertsLocalDataSource.getAllAlerts()
-    suspend fun insertAlert(alert: Alert) = alertsLocalDataSource.insertAlert(alert)
-    suspend fun deleteAlert(id: String) = alertsLocalDataSource.deleteAlert(id)
+    suspend fun insertFavorite(city: FavoriteCity) = favoritesLocalDatasource.insertFavorite(city)
+    suspend fun deleteFavorite(city: FavoriteCity) = favoritesLocalDatasource.deleteFavorite(city)
+    suspend fun setCityAsCurrent(city: FavoriteCity) = favoritesLocalDatasource.setCityAsCurrent(city)
+    fun getSubscribedAlerts(): Flow<List<Alert>> = alertsLocalDatasource.getAllAlerts()
+    suspend fun insertAlert(alert: Alert) = alertsLocalDatasource.insertAlert(alert)
+    suspend fun deleteAlert(id: String) = alertsLocalDatasource.deleteAlert(id)
 
-    suspend fun saveIsCelsius(isCelsius: Boolean) = onboardingLocalDatasource.saveIsCelsius(isCelsius)
-    suspend fun saveIs24Hour(is24Hour: Boolean) = onboardingLocalDatasource.saveIs24Hour(is24Hour)
-    suspend fun saveThemeMode(themeMode: String) = onboardingLocalDatasource.saveThemeMode(themeMode)
+    suspend fun saveIsCelsius(isCelsius: Boolean) = settingsLocalDatasource.saveIsCelsius(isCelsius)
+    suspend fun saveIs24Hour(is24Hour: Boolean) = settingsLocalDatasource.saveIs24Hour(is24Hour)
+    suspend fun saveThemeMode(themeMode: String) = settingsLocalDatasource.saveThemeMode(themeMode)
 
-    suspend fun saveLanguage(language: String) = onboardingLocalDatasource.saveLanguage(language)
+    suspend fun saveLanguage(language: String) = settingsLocalDatasource.saveLanguage(language)
 
     fun isNetworkAvailable(): Boolean {
         return isNetworkAvailable(context)

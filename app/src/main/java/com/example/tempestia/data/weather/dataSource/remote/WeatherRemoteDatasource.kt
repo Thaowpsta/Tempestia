@@ -4,8 +4,9 @@ import com.example.tempestia.data.network.RetrofitClient
 import com.example.tempestia.data.network.WeatherService
 import java.util.Locale
 
-class WeatherRemoteDatasource {
+class WeatherRemoteDatasource(
     private val weatherService: WeatherService = RetrofitClient.apiService
+) {
 
     suspend fun getCurrentWeather(lat: Double, lon: Double, apiKey: String) =
         weatherService.getCurrentWeather(

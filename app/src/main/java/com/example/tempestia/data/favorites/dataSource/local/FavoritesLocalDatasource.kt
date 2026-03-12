@@ -5,12 +5,16 @@ import com.example.tempestia.data.db.AppDatabase
 import com.example.tempestia.data.favorites.model.FavoriteCity
 import kotlinx.coroutines.flow.Flow
 
-class FavoritesLocalDatasource(context: Context) {
-    private val favoriteCityDao = AppDatabase.getDatabase(context).favoriteCityDao()
-
+class FavoritesLocalDatasource(
+    context: Context,
+    private val favoriteCityDao: FavoriteCityDao = AppDatabase.getDatabase(
+        context
+    ).favoriteCityDao()
+) {
     fun getAllFavorites(): Flow<List<FavoriteCity>> = favoriteCityDao.getAllFavorites()
 
-    suspend fun getCityByLatLng(lat: Double, lon: Double) = favoriteCityDao.getCityByLatLng(lat, lon)
+    suspend fun getCityByLatLng(lat: Double, lon: Double) =
+        favoriteCityDao.getCityByLatLng(lat, lon)
 
     suspend fun getAllFavoritesSync(): List<FavoriteCity> = favoriteCityDao.getAllFavoritesSync()
 
