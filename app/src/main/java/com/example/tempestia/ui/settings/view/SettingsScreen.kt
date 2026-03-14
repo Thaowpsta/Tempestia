@@ -39,7 +39,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import com.example.tempestia.R
-import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.ui.settings.viewModel.LocationFetchState
 import com.example.tempestia.ui.settings.viewModel.SettingsViewModel
@@ -47,6 +46,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import com.example.tempestia.utils.AnimatedParticleBackground
 
 fun Context.currentConnectivityState(): Flow<Boolean> = callbackFlow {
     val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

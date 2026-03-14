@@ -35,12 +35,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.tempestia.data.favorites.model.FavoriteCity
 import com.example.tempestia.data.weather.model.GeoResponse
 import com.example.tempestia.ui.favorites.viewModel.FavoriteWeatherState
 import com.example.tempestia.ui.favorites.viewModel.FavoritesViewModel
-import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
+import com.example.tempestia.utils.AnimatedParticleBackground
 import com.example.tempestia.utils.getWeatherEmoji
 import kotlin.math.roundToInt
 

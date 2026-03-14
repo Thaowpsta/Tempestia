@@ -50,6 +50,9 @@
     <string name="alert_morning_title">Morning Summary</string>
     <string name="alert_morning_desc">Daily forecast at 7:00 AM</string>
 
+    <string name="worker_thunderstorm_title">Severe Thunderstorm Alert</string>
+    <string name="alarm_thunderstorm_msg">Warning: %1$s expected in your area. Please stay safe!</string>
+
     <string name="local_weather_alerts">Local Weather Alerts</string>
     <string name="enable_perms_desc">Enable permissions so Tempestia can track storms in your exact area and send critical alerts.</string>
     <string name="location_access">Location Access</string>

@@ -9,7 +9,6 @@ import com.example.tempestia.data.settings.dataSource.locale.SettingsLocalDataso
 import com.example.tempestia.data.weather.dataSource.remote.WeatherRemoteDatasource
 import com.example.tempestia.data.weather.model.CurrentWeather
 import com.example.tempestia.data.weather.model.WeatherResponse
-import com.example.tempestia.repository.WeatherRepository
 import io.mockk.*
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.flow.MutableStateFlow

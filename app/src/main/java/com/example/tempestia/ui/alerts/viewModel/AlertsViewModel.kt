@@ -12,7 +12,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.tempestia.data.weather.model.Alert
-import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.data.WeatherRepository
 import com.example.tempestia.ui.alerts.worker.AlarmScheduler
 import com.example.tempestia.ui.alerts.worker.NotificationType
 import com.example.tempestia.ui.alerts.worker.WeatherAlertWorker
@@ -21,6 +21,8 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import com.example.tempestia.R
+import com.example.tempestia.data.weather.model.AlertItem
+import com.example.tempestia.data.weather.model.AlertLevel
 
 class AlertsViewModel(
     private val repository: WeatherRepository,

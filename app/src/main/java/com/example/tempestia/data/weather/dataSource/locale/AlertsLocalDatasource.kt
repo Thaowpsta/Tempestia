@@ -1,12 +1,9 @@
 package com.example.tempestia.data.weather.dataSource.locale
 
-import android.content.Context
 import com.example.tempestia.data.weather.model.Alert
-import com.example.tempestia.data.db.AppDatabase
 import kotlinx.coroutines.flow.Flow
 
-class AlertsLocalDatasource(context: Context) {
-    private val alertsDao = AppDatabase.getDatabase(context).alertsDao()
+class AlertsLocalDatasource(private val alertsDao: AlertsDao) {
 
     fun getAllAlerts(): Flow<List<Alert>> = alertsDao.getAllAlerts()
     suspend fun insertAlert(alert: Alert) = alertsDao.insertAlert(alert)

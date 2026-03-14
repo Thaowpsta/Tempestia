@@ -14,3 +14,9 @@ data class Alert(
     val timeHour: Int? = null,
     val timeMinute: Int? = null
 )
+
+data class AlertItem(
+    val title: String,
+    val subtitle: String,
+    val level: AlertLevel
+)

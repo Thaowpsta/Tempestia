@@ -1,5 +1,6 @@
 package com.example.tempestia.ui.alerts.viewModel
 
+import com.example.tempestia.data.weather.model.AlertLevel
 import com.example.tempestia.ui.alerts.worker.NotificationType
 
 data class SubscribedAlert(

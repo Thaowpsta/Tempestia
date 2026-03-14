@@ -1,6 +1,5 @@
 package com.example.tempestia.ui.alerts.view
 
-import android.content.Context
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.os.Build
@@ -26,15 +25,16 @@ import androidx.compose.ui.unit.sp
 import com.example.tempestia.R
 import com.example.tempestia.theme.TempestiaTheme
 import com.example.tempestia.ui.alerts.worker.AlarmScheduler
-import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
-import com.example.tempestia.ui.onboarding.view.DarkTempestiaColors
-import com.example.tempestia.ui.onboarding.view.LightTempestiaColors
+import com.example.tempestia.utils.LightTempestiaColors
+import com.example.tempestia.utils.DarkTempestiaColors
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
+import com.example.tempestia.utils.AnimatedParticleBackground
 
 class AlarmActivity : ComponentActivity() {
     private var ringtone: Ringtone? = null
     private var vibrator: Vibrator? = null
     private var wasInForeground = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         window.addFlags(
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
@@ -49,7 +49,7 @@ class AlarmActivity : ComponentActivity() {
         val notificationId = intent.getIntExtra("NOTIFICATION_ID", -1)
         if (notificationId != -1) {
             val notificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
             notificationManager.cancel(notificationId)
         }
 
@@ -57,7 +57,7 @@ class AlarmActivity : ComponentActivity() {
         val message = intent.getStringExtra("ALARM_MESSAGE") ?: getString(R.string.time_to_wake_up)
         val alertId = intent.getStringExtra("ALERT_ID") ?: "unknown_id"
 
-        val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+        val audioManager = getSystemService(AUDIO_SERVICE) as android.media.AudioManager
         val ringerMode = audioManager.ringerMode
 
         val alarmAttributes = android.media.AudioAttributes.Builder()
@@ -69,14 +69,12 @@ class AlarmActivity : ComponentActivity() {
             val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             ringtone = RingtoneManager.getRingtone(applicationContext, alarmUri)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                ringtone?.audioAttributes = alarmAttributes
-            }
+            ringtone?.audioAttributes = alarmAttributes
             ringtone?.play()
         }
 
         vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
-        val pattern = longArrayOf(0, 500, 500)
+        val pattern = longArrayOf(0, 500, 300)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val effect = VibrationEffect.createWaveform(pattern, 0)

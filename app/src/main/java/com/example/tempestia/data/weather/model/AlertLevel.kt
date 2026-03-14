@@ -1,4 +1,4 @@
-package com.example.tempestia.ui.alerts.viewModel
+package com.example.tempestia.data.weather.model
 
 enum class AlertLevel {
     DANGER, WARNING, INFO

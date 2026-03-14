@@ -1,14 +1,16 @@
-package com.example.tempestia.repository
+package com.example.tempestia.data
 
 import android.content.Context
 import android.location.Geocoder
 import android.location.Location
+import com.example.tempestia.data.db.AppDatabase
 import com.example.tempestia.data.weather.dataSource.locale.AlertsLocalDatasource
 import com.example.tempestia.data.weather.model.Alert
 import com.example.tempestia.data.favorites.dataSource.local.FavoritesLocalDatasource
 import com.example.tempestia.data.favorites.model.FavoriteCity
 import com.example.tempestia.data.settings.dataSource.locale.LocationDataSource
 import com.example.tempestia.data.settings.dataSource.locale.SettingsLocalDatasource
+import com.example.tempestia.data.settings.dataSource.locale.dataStore
 import com.example.tempestia.data.weather.dataSource.remote.WeatherRemoteDatasource
 import com.example.tempestia.utils.NetworkUtils.isNetworkAvailable
 import kotlinx.coroutines.Dispatchers
@@ -19,9 +21,9 @@ import java.util.Locale
 class WeatherRepository(
     private val context: Context,
     private val remoteDatasource: WeatherRemoteDatasource = WeatherRemoteDatasource(),
-    private val favoritesLocalDatasource: FavoritesLocalDatasource = FavoritesLocalDatasource(context),
-    private val alertsLocalDatasource: AlertsLocalDatasource = AlertsLocalDatasource(context),
-    private val settingsLocalDatasource: SettingsLocalDatasource = SettingsLocalDatasource(context)
+    private val favoritesLocalDatasource: FavoritesLocalDatasource = FavoritesLocalDatasource(AppDatabase.getDatabase(context).favoriteCityDao()),
+    private val alertsLocalDatasource: AlertsLocalDatasource = AlertsLocalDatasource(AppDatabase.getDatabase(context).alertsDao()),
+    private val settingsLocalDatasource: SettingsLocalDatasource = SettingsLocalDatasource(context.dataStore)
 ) {
 
     val isOnboardingCompleted = settingsLocalDatasource.isOnboardingCompleted
@@ -45,7 +47,7 @@ class WeatherRepository(
                     val address = addresses[0]
                     address.subLocality ?: address.locality ?: address.adminArea
                 } else null
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }
@@ -57,8 +59,6 @@ class WeatherRepository(
 
     suspend fun getWeather(lat: Double, lon: Double, apiKey: String) =
         remoteDatasource.getCurrentWeather(lat, lon, apiKey)
-    suspend fun getCityName(lat: Double, lon: Double, apiKey: String) =
-        remoteDatasource.getCityName(lat, lon, apiKey)
     suspend fun getCoordinatesByName(query: String, apiKey: String, limit: Int = 5) =
         remoteDatasource.getCoordinatesByName(query, apiKey, limit)
 

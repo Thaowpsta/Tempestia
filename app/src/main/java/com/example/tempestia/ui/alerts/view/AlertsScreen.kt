@@ -50,16 +50,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tempestia.R
-import com.example.tempestia.ui.alerts.viewModel.AlertLevel
-import com.example.tempestia.ui.alerts.viewModel.AlertItem
+import com.example.tempestia.data.weather.model.AlertLevel
+import com.example.tempestia.data.weather.model.AlertItem
 import com.example.tempestia.ui.alerts.viewModel.AlertsViewModel
 import com.example.tempestia.ui.alerts.viewModel.SubscribedAlert
-import com.example.tempestia.ui.onboarding.view.AnimatedParticleBackground
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.ui.alerts.worker.NotificationType
 import java.util.Calendar
 import kotlin.math.roundToInt
 import androidx.core.net.toUri
+import com.example.tempestia.utils.AnimatedParticleBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.tempestia.BuildConfig
 import com.example.tempestia.data.favorites.model.FavoriteCity
 import com.example.tempestia.data.weather.model.GeoResponse
-import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.data.weather.model.WeatherResponse
+import com.example.tempestia.data.WeatherRepository
+import com.google.gson.Gson
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.*
@@ -72,7 +74,7 @@ class FavoritesViewModel(private val repository: WeatherRepository) : ViewModel(
                                     val current = weather.current
 
                                     // 🚨 Save offline cache
-                                    val json = com.google.gson.Gson().toJson(weather)
+                                    val json = Gson().toJson(weather)
                                     if (city.cachedWeather != json) {
                                         repository.updateFavorite(city.copy(cachedWeather = json))
                                     }
@@ -140,7 +142,7 @@ class FavoritesViewModel(private val repository: WeatherRepository) : ViewModel(
     private fun loadFromCache(city: FavoriteCity): FavoriteWeatherState {
         return if (city.cachedWeather != null) {
             try {
-                val weather = com.google.gson.Gson().fromJson(city.cachedWeather, com.example.tempestia.data.weather.model.WeatherResponse::class.java)
+                val weather = Gson().fromJson(city.cachedWeather, WeatherResponse::class.java)
                 val current = weather.current
                 FavoriteWeatherState(
                     city = city,

@@ -11,7 +11,7 @@ import androidx.core.app.NotificationCompat
 import com.example.tempestia.BuildConfig
 import com.example.tempestia.MainActivity
 import com.example.tempestia.R
-import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.data.WeatherRepository
 import com.example.tempestia.ui.alerts.view.AlarmActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val alertTitle = intent.getStringExtra("ALERT_TITLE") ?: return
+        var alertTitle = intent.getStringExtra("ALERT_TITLE") ?: return
         val alertId = intent.getStringExtra("ALERT_ID") ?: "unknown_id"
 
         val pendingResult = goAsync()
@@ -39,22 +39,39 @@ class AlarmReceiver : BroadcastReceiver() {
                     var message = ""
 
                     if (weather != null) {
-                        when (alertTitle) {
-                            "Morning Summary" -> {
-                                shouldRing = true
-                                val condition = weather.current.weather.firstOrNull()?.description ?: context.getString(R.string.condition_clear)
-                                message = context.getString(R.string.alarm_morning_summary_msg, weather.current.temp.toInt(), condition)
-                            }
-                            "Rain Reminder" -> {
-                                if (weather.current.weather.any { it.description.contains("rain", true) }) {
+                        if (!weather.alerts.isNullOrEmpty()) {
+                            val officialAlert = weather.alerts.first()
+                            shouldRing = true
+                            alertTitle = officialAlert.event
+                            message = officialAlert.description
+                        }
+                        else {
+                            when (alertTitle) {
+                                "Morning Summary" -> {
                                     shouldRing = true
-                                    message = context.getString(R.string.alarm_rain_msg)
+                                    val condition = weather.current.weather.firstOrNull()?.description ?: context.getString(R.string.condition_clear)
+                                    message = context.getString(R.string.alarm_morning_summary_msg, weather.current.temp.toInt(), condition)
                                 }
-                            }
-                            "Extreme Heat" -> {
-                                if (weather.current.temp >= 40.0) {
-                                    shouldRing = true
-                                    message = context.getString(R.string.alarm_heat_msg, weather.current.temp.toInt())
+                                "Rain Reminder" -> {
+                                    if (weather.current.weather.any { it.description.contains("rain", true) }) {
+                                        shouldRing = true
+                                        message = context.getString(R.string.alarm_rain_msg)
+                                    }
+                                }
+                                "Extreme Heat" -> {
+                                    if (weather.current.temp >= 40.0) {
+                                        shouldRing = true
+                                        message = context.getString(R.string.alarm_heat_msg, weather.current.temp.toInt())
+                                    }
+                                }
+                                "Severe Thunderstorm" -> {
+                                    val stormCondition = weather.current.weather.firstOrNull {
+                                        it.description.contains("thunderstorm", ignoreCase = true) || it.id in 200..299
+                                    }
+                                    if (stormCondition != null) {
+                                        shouldRing = true
+                                        message = context.getString(R.string.alarm_thunderstorm_msg, stormCondition.description)
+                                    }
                                 }
                             }
                         }

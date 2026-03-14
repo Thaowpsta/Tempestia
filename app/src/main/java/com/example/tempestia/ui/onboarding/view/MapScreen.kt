@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tempestia.R
+import com.example.tempestia.ui.onboarding.view.components.PulsingButton
 import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng

@@ -8,7 +8,7 @@ import com.google.android.gms.location.Priority
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-class LocationDataSource(private val context: Context) {
+class LocationDataSource(context: Context) {
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
     @SuppressLint("MissingPermission")

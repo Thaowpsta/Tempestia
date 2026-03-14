@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.tempestia.R
 import com.example.tempestia.data.favorites.model.FavoriteCity
-import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.data.WeatherRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 

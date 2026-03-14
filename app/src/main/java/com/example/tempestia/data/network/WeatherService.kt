@@ -23,19 +23,6 @@ interface WeatherService {
         language: String
     ): Response<WeatherResponse>
 
-
-    @GET("geo/1.0/reverse")
-    suspend fun getCityName(
-        @Query("lat")
-        lat: Double,
-        @Query("lon")
-        lon: Double,
-        @Query("limit")
-        limit: Int = 1,
-        @Query("appid")
-        apiKey: String
-    ): Response<List<GeoResponse>>
-
     @GET("geo/1.0/direct")
     suspend fun getCoordinatesByName(
         @Query("q")

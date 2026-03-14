@@ -13,7 +13,7 @@ import androidx.work.WorkerParameters
 import com.example.tempestia.BuildConfig
 import com.example.tempestia.MainActivity
 import com.example.tempestia.R
-import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.data.WeatherRepository
 import kotlinx.coroutines.flow.firstOrNull
 import java.util.Calendar
 
@@ -109,6 +109,22 @@ class WeatherAlertWorker(
                             )
 
                             prefs.edit().putInt("LastMorningSummaryDay", currentDayOfYear).apply()
+                        }
+                    }
+
+                    "Severe Thunderstorm" -> {
+                        val isStormingNow = weather.current.weather.any { it.id in 200..299 }
+                        val willStormToday = weather.daily.firstOrNull()?.weather?.any { it.id in 200..299 } == true
+
+                        if (isStormingNow || willStormToday) {
+                            val description = weather.current.weather.firstOrNull { it.id in 200..299 }?.description
+                                ?: applicationContext.getString(R.string.alert_thunderstorm_desc)
+
+                            showNotification(
+                                title = applicationContext.getString(R.string.worker_thunderstorm_title),
+                                message = description.replaceFirstChar { it.uppercase() },
+                                type = notifType
+                            )
                         }
                     }
                 }

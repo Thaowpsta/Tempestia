@@ -3,7 +3,7 @@ package com.example.tempestia.ui.home.viewModel
 import com.example.tempestia.MainDispatcherRule
 import com.example.tempestia.data.weather.model.CurrentWeather
 import com.example.tempestia.data.weather.model.WeatherResponse
-import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.data.WeatherRepository
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

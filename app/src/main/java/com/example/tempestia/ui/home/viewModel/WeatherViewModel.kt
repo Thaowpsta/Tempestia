@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.tempestia.BuildConfig
 import com.example.tempestia.data.weather.model.WeatherResponse
-import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.data.WeatherRepository
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,7 +42,7 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
                         // 🚨 Save Offline Cache
                         val city = repository.getCityByLatLng(lat, lon)
                         if (city != null) {
-                            val json = com.google.gson.Gson().toJson(weather)
+                            val json = Gson().toJson(weather)
                             repository.updateFavorite(city.copy(cachedWeather = json))
                         }
 
@@ -62,7 +63,7 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
         val city = repository.getCityByLatLng(lat, lon)
         if (city?.cachedWeather != null) {
             try {
-                val weather = com.google.gson.Gson().fromJson(city.cachedWeather, WeatherResponse::class.java)
+                val weather = Gson().fromJson(city.cachedWeather, WeatherResponse::class.java)
                 val cityName = repository.getPreciseLocationName(lat, lon, lang) ?: city.cityName
                 _weatherState.value = WeatherState.Success(weather, cityName)
             } catch(_: Exception) {

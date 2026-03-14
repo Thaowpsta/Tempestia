@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivityResultRegistryOwner
-import androidx.activity.compose.LocalActivityResultRegistryOwner.provides
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.border
@@ -27,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.data.WeatherRepository
 import com.example.tempestia.ui.favorites.view.FavoritesScreen
 import com.example.tempestia.ui.favorites.viewModel.FavoritesViewModel
 import com.example.tempestia.ui.favorites.viewModel.FavoritesViewModelFactory
@@ -35,8 +34,6 @@ import com.example.tempestia.ui.home.view.HomeScreen
 import com.example.tempestia.ui.home.viewModel.WeatherViewModel
 import com.example.tempestia.ui.home.viewModel.WeatherViewModelFactory
 import com.example.tempestia.ui.navigations.AppDestinations
-import com.example.tempestia.ui.onboarding.view.DarkTempestiaColors
-import com.example.tempestia.ui.onboarding.view.LightTempestiaColors
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.ui.onboarding.view.MapScreen
 import com.example.tempestia.ui.onboarding.view.OnboardingScreen
@@ -54,6 +51,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import com.example.tempestia.utils.LightTempestiaColors
+import com.example.tempestia.utils.DarkTempestiaColors
 
 class MainActivity : ComponentActivity() {
     companion object {

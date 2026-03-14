@@ -171,6 +171,9 @@
     <string name="alert_morning_title">ملخص الصباح</string>
     <string name="alert_morning_desc">التوقعات اليومية في الساعة 7:00 صباحاً</string>
 
+    <string name="worker_thunderstorm_title">تحذير من عواصف رعدية شديدة</string>
+    <string name="alarm_thunderstorm_msg">تحذير: متوقع %1$s في منطقتك. يرجى الحفاظ على سلامتك!</string>
+
     <string name="settings_title">الإعدادات</string>
     <string name="location_header">الموقع</string>
     <string name="location_method">طريقة تحديد الموقع</string>

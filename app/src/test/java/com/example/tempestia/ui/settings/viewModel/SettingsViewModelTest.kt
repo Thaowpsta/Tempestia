@@ -1,7 +1,7 @@
 package com.example.tempestia.ui.settings.viewModel
 
 import com.example.tempestia.MainDispatcherRule
-import com.example.tempestia.repository.WeatherRepository
+import com.example.tempestia.data.WeatherRepository
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
