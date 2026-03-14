@@ -60,6 +60,7 @@ import java.util.Calendar
 import kotlin.math.roundToInt
 import androidx.core.net.toUri
 import com.example.tempestia.utils.AnimatedParticleBackground
+import com.example.tempestia.utils.showToast
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,11 +170,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
 
                         // "Display Over Other Apps" Permission
                         if (!android.provider.Settings.canDrawOverlays(context)) {
-                            android.widget.Toast.makeText(
-                                context,
-                                context.getString(R.string.display_over_apps_prompt),
-                                android.widget.Toast.LENGTH_LONG
-                            ).show()
+                            context.showToast(R.string.display_over_apps_prompt)
                             val intent = android.content.Intent(
                                 android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                                 "package:${context.packageName}".toUri()
@@ -285,11 +282,7 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                             }
                         }
                         if (!android.provider.Settings.canDrawOverlays(context)) {
-                            android.widget.Toast.makeText(
-                                context,
-                                context.getString(R.string.display_over_apps_prompt),
-                                android.widget.Toast.LENGTH_LONG
-                            ).show()
+                            context.showToast(R.string.display_over_apps_prompt)
                             val intent = android.content.Intent(
                                 android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                                 android.net.Uri.parse("package:${context.packageName}")

@@ -17,8 +17,8 @@ class SettingsViewModel(private val repository: WeatherRepository) : ViewModel()
     private val _locationMethod = MutableStateFlow("GPS")
     private val _showMapDialog = MutableStateFlow(false)
 
-    private val _toastMessage = MutableStateFlow<Int?>(null)
-    val toastMessage: StateFlow<Int?> = _toastMessage.asStateFlow()
+    private val _toastMessage = MutableSharedFlow<Int>()
+    val toastMessage: SharedFlow<Int> = _toastMessage.asSharedFlow()
 
     val preferences: StateFlow<SettingsPreferences> = combine(
         repository.isCelsiusFlow,
@@ -51,8 +51,11 @@ class SettingsViewModel(private val repository: WeatherRepository) : ViewModel()
     fun setLocationMethod(method: String) { _locationMethod.value = method }
     fun setShowMapDialog(show: Boolean) { _showMapDialog.value = show }
 
-    fun showToast(resId: Int) { _toastMessage.value = resId }
-    fun clearToast() { _toastMessage.value = null }
+    fun showToast(resId: Int) {
+        viewModelScope.launch {
+            _toastMessage.emit(resId)
+        }
+    }
 
     fun fetchLocation() {
         viewModelScope.launch {

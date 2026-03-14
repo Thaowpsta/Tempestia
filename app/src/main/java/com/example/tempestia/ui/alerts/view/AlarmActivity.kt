@@ -29,6 +29,7 @@ import com.example.tempestia.utils.LightTempestiaColors
 import com.example.tempestia.utils.DarkTempestiaColors
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.utils.AnimatedParticleBackground
+import com.example.tempestia.utils.showToast
 
 class AlarmActivity : ComponentActivity() {
     private var ringtone: Ringtone? = null
@@ -136,12 +137,7 @@ class AlarmActivity : ComponentActivity() {
                                             title,
                                             2
                                         )
-                                        android.widget.Toast.makeText(
-                                            applicationContext,
-                                            getString(R.string.snoozed_msg),
-                                            android.widget.Toast.LENGTH_SHORT
-                                        ).show()
-
+                                        showToast(R.string.snoozed_msg)
                                         navigateToHome()
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = colors.purpleCore),

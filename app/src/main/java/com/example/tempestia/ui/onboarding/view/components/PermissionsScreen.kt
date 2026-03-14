@@ -43,6 +43,7 @@ import androidx.core.content.ContextCompat
 import com.example.tempestia.R
 import com.example.tempestia.ui.onboarding.view.LocalTempestiaColors
 import com.example.tempestia.ui.onboarding.viewModel.OnboardingViewModel
+import com.example.tempestia.utils.showToast
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 
@@ -64,13 +65,13 @@ fun PermissionsScreen(viewModel: OnboardingViewModel, onBack: () -> Unit, onFini
                 if (location != null) {
                     onFinish(location.latitude, location.longitude)
                 } else {
-                    Toast.makeText(context, context.getString(R.string.toast_gps_signal_lost), Toast.LENGTH_LONG).show()
+                    context.showToast(R.string.toast_gps_signal_lost)
                     onOpenMap()
                 }
             }
             .addOnFailureListener {
                 viewModel.setIsFetchingLocation(false)
-                Toast.makeText(context, context.getString(R.string.toast_location_failed), Toast.LENGTH_LONG).show()
+                context.showToast(R.string.toast_location_failed)
                 onOpenMap()
             }
     }
@@ -98,7 +99,7 @@ fun PermissionsScreen(viewModel: OnboardingViewModel, onBack: () -> Unit, onFini
             if (hasLoc) {
                 fetchLocationAndFinish()
             } else {
-                Toast.makeText(context, context.getString(R.string.toast_location_required), Toast.LENGTH_SHORT).show()
+                context.showToast(R.string.toast_location_required)
                 onOpenMap()
             }
         }

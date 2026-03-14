@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import com.example.tempestia.utils.AnimatedParticleBackground
+import com.example.tempestia.utils.showToast
 
 fun Context.currentConnectivityState(): Flow<Boolean> = callbackFlow {
     val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -72,13 +73,11 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
 
     val prefs by viewModel.preferences.collectAsState()
     val fetchState by viewModel.locationFetchState.collectAsState()
-    val toastMessage by viewModel.toastMessage.collectAsState()
     val isOnline by context.currentConnectivityState().collectAsState(initial = true)
 
-    LaunchedEffect(toastMessage) {
-        toastMessage?.let {
-            Toast.makeText(context, context.getString(it), Toast.LENGTH_SHORT).show()
-            viewModel.clearToast()
+    LaunchedEffect(Unit) {
+        viewModel.toastMessage.collect { resId ->
+            context.showToast(context.getString(resId))
         }
     }
 

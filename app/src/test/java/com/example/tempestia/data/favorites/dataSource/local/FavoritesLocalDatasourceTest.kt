@@ -21,7 +21,6 @@ class FavoritesLocalDatasourceTest {
         mockDao = mockk(relaxed = true)
 
         datasource = FavoritesLocalDatasource(
-            context = mockContext,
             favoriteCityDao = mockDao
         )
     }
