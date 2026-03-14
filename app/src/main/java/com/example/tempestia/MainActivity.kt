@@ -3,6 +3,7 @@ package com.example.tempestia
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.compose.LocalActivityResultRegistryOwner.provides
 import androidx.activity.compose.setContent
@@ -163,6 +164,10 @@ fun TempestiaApp(
 ) {
     val colors = LocalTempestiaColors.current
     var currentDestination by rememberSaveable { mutableStateOf(startDestination) }
+
+    BackHandler(enabled = currentDestination != AppDestinations.HOME) {
+        currentDestination = AppDestinations.HOME
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

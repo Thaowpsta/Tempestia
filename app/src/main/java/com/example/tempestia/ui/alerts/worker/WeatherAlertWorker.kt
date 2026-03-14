@@ -66,7 +66,10 @@ class WeatherAlertWorker(
 
                 when (alert.title) {
                     "Rain Reminder" -> {
-                        if (weather.current.weather.any { it.description.contains("rain", true) }) {
+                        val isRainingNow = weather.current.weather.any { it.description.contains("rain", true) }
+                        val willRainToday = weather.daily.firstOrNull()?.weather?.any { it.description.contains("rain", true) } == true
+
+                        if (isRainingNow || willRainToday) {
                             showNotification(
                                 applicationContext.getString(R.string.worker_rain_title),
                                 alert.subtitle,
@@ -76,10 +79,14 @@ class WeatherAlertWorker(
                     }
 
                     "Extreme Heat" -> {
-                        if (weather.current.temp >= 40.0) {
+                        val isHotNow = weather.current.temp >= 40.0
+                        val willBeHotToday = (weather.daily.firstOrNull()?.temp?.max ?: 0.0) >= 40.0
+
+                        if (isHotNow || willBeHotToday) {
+                            val maxTemp = maxOf(weather.current.temp, weather.daily.firstOrNull()?.temp?.max ?: 0.0)
                             showNotification(
                                 applicationContext.getString(R.string.worker_heat_title),
-                                applicationContext.getString(R.string.worker_heat_msg, weather.current.temp.toInt()),
+                                applicationContext.getString(R.string.worker_heat_msg, maxTemp.toInt()),
                                 notifType
                             )
                         }
@@ -93,7 +100,6 @@ class WeatherAlertWorker(
                         val lastSentDay = prefs.getInt("LastMorningSummaryDay", -1)
 
                         if (currentHour in 7..11 && currentDayOfYear != lastSentDay) {
-
                             val condition = weather.current.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() } ?: applicationContext.getString(R.string.condition_clear)
 
                             showNotification(

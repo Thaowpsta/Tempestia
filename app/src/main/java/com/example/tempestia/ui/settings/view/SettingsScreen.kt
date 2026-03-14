@@ -110,10 +110,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
     Box(modifier = Modifier.fillMaxSize().background(colors.bgDeep)) {
         AnimatedParticleBackground()
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier.weight(1f).padding(horizontal = 20.dp).verticalScroll(rememberScrollState())
-            ) {
+        Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).verticalScroll(rememberScrollState())) {
                 Spacer(modifier = Modifier.height(48.dp))
                 Text(
                     text = stringResource(R.string.settings_title),
@@ -246,18 +243,18 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateToFavorites: () -> Un
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Text(
+                    text = stringResource(R.string.app_footer),
+                    color = colors.text3,
+                    fontSize = 12.sp,
+                    letterSpacing = 1.5.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 120.dp)
+                )
             }
 
-            Text(
-                text = stringResource(R.string.app_footer),
-                color = colors.text3,
-                fontSize = 12.sp,
-                letterSpacing = 1.5.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 120.dp, top = 16.dp)
-            )
-        }
     }
 }
 
