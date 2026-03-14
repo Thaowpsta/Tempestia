@@ -38,6 +38,18 @@
     <string name="subscribe_alert">Subscribe to Alert</string>
     <string name="all_alerts_subscribed">You are subscribed to all available alerts!</string>
 
+    <string name="alert_thunderstorm_title">Severe Thunderstorm</string>
+    <string name="alert_thunderstorm_desc">Heavy rain and strong winds</string>
+
+    <string name="alert_heat_title">Extreme Heat</string>
+    <string name="alert_heat_desc">Temperatures exceeding 40°C</string>
+
+    <string name="alert_rain_title">Rain Reminder</string>
+    <string name="alert_rain_desc">Notifies you if rain is expected today</string>
+
+    <string name="alert_morning_title">Morning Summary</string>
+    <string name="alert_morning_desc">Daily forecast at 7:00 AM</string>
+
     <string name="local_weather_alerts">Local Weather Alerts</string>
     <string name="enable_perms_desc">Enable permissions so Tempestia can track storms in your exact area and send critical alerts.</string>
     <string name="location_access">Location Access</string>
@@ -179,4 +191,5 @@
     <string name="dark_theme">Dark</string>
     <string name="system_theme">System</string>
     <string name="app_footer">Tempestia v1.0.0\nDesigned by Thaowpsta Saiid</string>
+    <string name="refresh">Refresh</string>
 </resources>

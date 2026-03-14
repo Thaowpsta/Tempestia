@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.tempestia.data.alerts.dataSource.locale.AlertsDao
-import com.example.tempestia.data.alerts.model.Alert
+import com.example.tempestia.data.weather.dataSource.locale.AlertsDao
+import com.example.tempestia.data.weather.model.Alert
 import com.example.tempestia.data.db.AppDatabase
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.flow.first

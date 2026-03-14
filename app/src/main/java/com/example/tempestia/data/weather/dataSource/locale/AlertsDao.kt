@@ -1,10 +1,10 @@
-package com.example.tempestia.data.alerts.dataSource.locale
+package com.example.tempestia.data.weather.dataSource.locale
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.example.tempestia.data.alerts.model.Alert
+import com.example.tempestia.data.weather.model.Alert
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -25,7 +25,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import com.example.tempestia.R
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +51,10 @@ fun FavoritesScreen(
     onCitySelected: (Double, Double, String) -> Unit = { _, _, _ -> }
 ) {
     val colors = LocalTempestiaColors.current
+
+    val currentContext = LocalContext.current
+    val currentConfig = LocalConfiguration.current
+    val currentLayoutDir = LocalLayoutDirection.current
 
     val favoriteWeather by viewModel.favoriteWeather.collectAsState()
 
@@ -82,7 +89,11 @@ fun FavoritesScreen(
                     viewModel.setShowAddSearchDialog(false)
                     viewModel.clearApiSearch()
                 }) {
-                    Text(stringResource(R.string.add_city_btn), color = colors.purpleBright, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.add_city_btn),
+                        color = colors.purpleBright,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             dismissButton = {
@@ -103,13 +114,24 @@ fun FavoritesScreen(
             titleContentColor = colors.text1,
             textContentColor = colors.text3,
             title = { Text(stringResource(R.string.remove_location_title)) },
-            text = { Text(stringResource(R.string.remove_location_desc, cityToConfirmDelete?.cityName ?: "")) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.remove_location_desc,
+                        cityToConfirmDelete?.cityName ?: ""
+                    )
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     cityToConfirmDelete?.let { viewModel.removeCity(it) }
                     viewModel.setCityToConfirmDelete(null)
                 }) {
-                    Text(stringResource(R.string.remove_btn), color = Color(0xFFFF4B4B), fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.remove_btn),
+                        color = Color(0xFFFF4B4B),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             dismissButton = {
@@ -227,60 +249,71 @@ fun FavoritesScreen(
             containerColor = colors.bgDeep,
             dragHandle = { BottomSheetDefaults.DragHandle(color = colors.text3) }
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-                    .padding(bottom = 64.dp)
+            CompositionLocalProvider(
+                LocalContext provides currentContext,
+                LocalConfiguration provides currentConfig,
+                LocalLayoutDirection provides currentLayoutDir
             ) {
-                Text(
-                    stringResource(R.string.add_new_city_title),
-                    color = colors.text1,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = apiSearchQuery,
-                    onValueChange = { viewModel.onApiSearchQueryChanged(it) },
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(32.dp))
-                        .background(colors.glass),
-                    placeholder = { Text(stringResource(R.string.search_openweathermap), color = colors.text3) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Filled.Search,
-                            contentDescription = "Search",
-                            tint = colors.purpleBright
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
-                        focusedTextColor = colors.text1,
-                        unfocusedTextColor = colors.text1
+                        .padding(24.dp)
+                        .padding(bottom = 64.dp)
+                ) {
+                    Text(
+                        stringResource(R.string.add_new_city_title),
+                        color = colors.text1,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (isSearchingApi) {
-                    Box(
+                    OutlinedTextField(
+                        value = apiSearchQuery,
+                        onValueChange = { viewModel.onApiSearchQueryChanged(it) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(150.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = colors.purpleBright)
-                    }
-                } else {
-                    LazyColumn(modifier = Modifier.heightIn(max = 350.dp)) {
-                        itemsIndexed(apiSearchResults ?: emptyList()) { index, result ->
-                            SearchResultRow(result) { viewModel.setCityToConfirmAdd(result) }
-                            if (index < (apiSearchResults?.size ?: 0) - 1) {
-                                HorizontalDivider(color = colors.glassBorder.copy(alpha = 0.5f))
+                            .clip(RoundedCornerShape(32.dp))
+                            .background(colors.glass),
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.search_openweathermap),
+                                color = colors.text3
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Filled.Search,
+                                contentDescription = "Search",
+                                tint = colors.purpleBright
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedTextColor = colors.text1,
+                            unfocusedTextColor = colors.text1
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (isSearchingApi) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(150.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = colors.purpleBright)
+                        }
+                    } else {
+                        LazyColumn(modifier = Modifier.heightIn(max = 350.dp)) {
+                            itemsIndexed(apiSearchResults ?: emptyList()) { index, result ->
+                                SearchResultRow(result) { viewModel.setCityToConfirmAdd(result) }
+                                if (index < (apiSearchResults?.size ?: 0) - 1) {
+                                    HorizontalDivider(color = colors.glassBorder.copy(alpha = 0.5f))
+                                }
                             }
                         }
                     }

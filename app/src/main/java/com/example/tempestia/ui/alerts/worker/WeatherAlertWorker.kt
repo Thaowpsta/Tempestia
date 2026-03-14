@@ -66,8 +66,8 @@ class WeatherAlertWorker(
 
                 when (alert.title) {
                     "Rain Reminder" -> {
-                        val isRainingNow = weather.current.weather.any { it.description.contains("rain", true) }
-                        val willRainToday = weather.daily.firstOrNull()?.weather?.any { it.description.contains("rain", true) } == true
+                        val isRainingNow = weather.current.weather.any { it.id in 200..599 || it.description.contains("rain", true) }
+                        val willRainToday = weather.daily.firstOrNull()?.weather?.any { it.id in 200..599 || it.description.contains("rain", true) } == true
 
                         if (isRainingNow || willRainToday) {
                             showNotification(

@@ -159,6 +159,18 @@
     <string name="end_time">وقت الانتهاء</string>
     <string name="alert_level">مستوى التنبيه</string>
 
+    <string name="alert_thunderstorm_title">عاصفة رعدية شديدة</string>
+    <string name="alert_thunderstorm_desc">أمطار غزيرة ورياح قوية</string>
+
+    <string name="alert_heat_title">حرارة شديدة</string>
+    <string name="alert_heat_desc">درجات حرارة تتجاوز 40 درجة مئوية</string>
+
+    <string name="alert_rain_title">تذكير بالمطر</string>
+    <string name="alert_rain_desc">ينبهك إذا كان من المتوقع هطول أمطار اليوم</string>
+
+    <string name="alert_morning_title">ملخص الصباح</string>
+    <string name="alert_morning_desc">التوقعات اليومية في الساعة 7:00 صباحاً</string>
+
     <string name="settings_title">الإعدادات</string>
     <string name="location_header">الموقع</string>
     <string name="location_method">طريقة تحديد الموقع</string>
@@ -181,4 +193,5 @@
     <string name="dark_theme">داكن</string>
     <string name="system_theme">النظام</string>
     <string name="app_footer">Tempestia v1.0.0\nتصميم ثاؤبستى سعيد</string>
+    <string name="refresh">انعاش</string>
 </resources>

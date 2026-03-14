@@ -2,7 +2,7 @@ package com.example.tempestia.data
 
 import android.content.Context
 import com.example.tempestia.MainDispatcherRule
-import com.example.tempestia.data.alerts.dataSource.locale.AlertsLocalDatasource
+import com.example.tempestia.data.weather.dataSource.locale.AlertsLocalDatasource
 import com.example.tempestia.data.favorites.dataSource.local.FavoritesLocalDatasource
 import com.example.tempestia.data.favorites.model.FavoriteCity
 import com.example.tempestia.data.settings.dataSource.locale.SettingsLocalDatasource

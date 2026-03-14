@@ -37,8 +37,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -63,6 +66,9 @@ import androidx.core.net.toUri
 fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
     val colors = LocalTempestiaColors.current
     val context = LocalContext.current
+    val currentConfig = LocalConfiguration.current
+    val currentLayoutDir = LocalLayoutDirection.current
+    val activityContext = LocalView.current.context
 
     val subscribedAlerts by viewModel.subscribedAlerts.collectAsState()
     val availableTemplates by viewModel.availableTemplatesFlow.collectAsState()
@@ -153,6 +159,8 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                                         .apply {
                                             data =
                                                 "package:${context.packageName}".toUri()
+
+                                            flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
                                         }
                                 context.startActivity(intent)
                                 return@NotificationChoiceRow
@@ -169,14 +177,17 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                             val intent = android.content.Intent(
                                 android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                                 "package:${context.packageName}".toUri()
-                            )
+                            ).apply {
+                                flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                            }
+
                             context.startActivity(intent)
                             return@NotificationChoiceRow
                         }
 
                         val calendar = Calendar.getInstance()
                         TimePickerDialog(
-                            context,
+                            activityContext,
                             { _, selectedHour, selectedMinute ->
                                 viewModel.updateAlert(
                                     alertToEdit!!,
@@ -226,7 +237,10 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        stringResource(R.string.notify_prompt, getLocalizedAlertText(templateToAdd!!.title)),
+                        stringResource(
+                            R.string.notify_prompt,
+                            getLocalizedAlertText(templateToAdd!!.title)
+                        ),
                         color = colors.text3
                     )
 
@@ -263,6 +277,8 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                                         .apply {
                                             data =
                                                 "package:${context.packageName}".toUri()
+
+                                            flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
                                         }
                                 context.startActivity(intent)
                                 return@NotificationChoiceRow
@@ -277,14 +293,16 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                             val intent = android.content.Intent(
                                 android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                                 android.net.Uri.parse("package:${context.packageName}")
-                            )
+                            ).apply {
+                                flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                            }
                             context.startActivity(intent)
                             return@NotificationChoiceRow
                         }
 
                         val calendar = Calendar.getInstance()
                         TimePickerDialog(
-                            context,
+                            activityContext,
                             { _, selectedHour, selectedMinute ->
                                 viewModel.addAlert(
                                     templateToAdd!!,
@@ -418,31 +436,37 @@ fun AlertsScreen(viewModel: AlertsViewModel = viewModel()) {
                 containerColor = colors.bgDeep,
                 dragHandle = { BottomSheetDefaults.DragHandle(color = colors.text3) }
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
-                        .padding(bottom = 48.dp)
+                CompositionLocalProvider(
+                    LocalContext provides context,
+                    LocalConfiguration provides currentConfig,
+                    LocalLayoutDirection provides currentLayoutDir
                 ) {
-                    Text(
-                        stringResource(R.string.subscribe_alert),
-                        color = colors.text1,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    if (availableTemplates.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp)
+                            .padding(bottom = 48.dp)
+                    ) {
                         Text(
-                            stringResource(R.string.all_alerts_subscribed),
-                            color = colors.text3,
-                            modifier = Modifier.padding(top = 16.dp)
+                            stringResource(R.string.subscribe_alert),
+                            color = colors.text1,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
                         )
-                    } else {
-                        LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
-                            items(availableTemplates) { template ->
-                                TemplateRow(template) {
-                                    viewModel.setTemplateToAdd(template)
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        if (availableTemplates.isEmpty()) {
+                            Text(
+                                stringResource(R.string.all_alerts_subscribed),
+                                color = colors.text3,
+                                modifier = Modifier.padding(top = 16.dp)
+                            )
+                        } else {
+                            LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
+                                items(availableTemplates) { template ->
+                                    TemplateRow(template) {
+                                        viewModel.setTemplateToAdd(template)
+                                    }
                                 }
                             }
                         }
@@ -710,7 +734,11 @@ fun SubscribedAlertCardContent(alert: SubscribedAlert, onToggle: (Boolean) -> Un
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = getLocalizedAlertText(alert.subtitle), color = colors.text2, fontSize = 14.sp)
+                Text(
+                    text = getLocalizedAlertText(alert.subtitle),
+                    color = colors.text2,
+                    fontSize = 14.sp
+                )
             }
 
             CustomToggle(checked = alert.isActive, onCheckedChange = onToggle)

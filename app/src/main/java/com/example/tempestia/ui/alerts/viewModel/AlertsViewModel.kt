@@ -11,7 +11,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.example.tempestia.data.alerts.model.Alert
+import com.example.tempestia.data.weather.model.Alert
 import com.example.tempestia.repository.WeatherRepository
 import com.example.tempestia.ui.alerts.worker.AlarmScheduler
 import com.example.tempestia.ui.alerts.worker.NotificationType
@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import com.example.tempestia.R
 
 class AlertsViewModel(
     private val repository: WeatherRepository,
@@ -72,13 +73,27 @@ class AlertsViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val baseTemplates = listOf(
-        AlertItem("Severe Thunderstorm", "Heavy rain and strong winds", AlertLevel.DANGER),
-        AlertItem("Extreme Heat", "Temperatures exceeding 40°C", AlertLevel.WARNING),
-        AlertItem("Rain Reminder", "Notifies you if rain is expected today", AlertLevel.INFO),
-        AlertItem("Morning Summary", "Daily forecast at 7:00 AM", AlertLevel.INFO),
-        AlertItem("Custom Condition", "Set your own weather rules", AlertLevel.INFO)
+        AlertItem(
+            title = context.getString(R.string.alert_thunderstorm_title),
+            subtitle = context.getString(R.string.alert_thunderstorm_desc),
+            level = AlertLevel.DANGER
+        ),
+        AlertItem(
+            title = context.getString(R.string.alert_heat_title),
+            subtitle = context.getString(R.string.alert_heat_desc),
+            level = AlertLevel.WARNING
+        ),
+        AlertItem(
+            title = context.getString(R.string.alert_rain_title),
+            subtitle = context.getString(R.string.alert_rain_desc),
+            level = AlertLevel.INFO
+        ),
+        AlertItem(
+            title = context.getString(R.string.alert_morning_title),
+            subtitle = context.getString(R.string.alert_morning_desc),
+            level = AlertLevel.INFO
+        ),
     )
-
     val availableTemplatesFlow: StateFlow<List<AlertItem>> = subscribedAlerts.map { subscribed ->
         baseTemplates.filter { template ->
             subscribed.none { it.title == template.title }

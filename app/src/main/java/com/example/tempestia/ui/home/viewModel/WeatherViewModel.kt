@@ -21,15 +21,19 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     val languageFlow = repository.languageFlow
     private val apiKey = BuildConfig.WEATHER_API_KEY
 
-    fun getWeather(lat: Double, lon: Double) {
+    fun getWeather(lat: Double, lon: Double, isSwipeRefresh: Boolean = false) {
         viewModelScope.launch {
-            _weatherState.value = WeatherState.Loading
+
+            if (!isSwipeRefresh) {
+                _weatherState.value = WeatherState.Loading
+            }
+
             val isOnline = repository.isNetworkAvailable()
             val lang = languageFlow.firstOrNull()
 
             if (isOnline) {
                 try {
-                    val response = repository.getWeather(lat, lon, BuildConfig.WEATHER_API_KEY)
+                    val response = repository.getWeather(lat, lon, apiKey)
                     if (response.isSuccessful && response.body() != null) {
                         val weather = response.body()!!
                         val cityName = repository.getPreciseLocationName(lat, lon, lang) ?: "Unknown Location"
@@ -45,7 +49,7 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
                     } else {
                         loadCachedWeather(lat, lon, lang)
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     loadCachedWeather(lat, lon, lang)
                 }
             } else {
@@ -54,15 +58,14 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
         }
     }
 
-    // 🚨 OFFLINE ENGINE
-    private suspend fun loadCachedWeather(lat: Double, lon: Double, lang: String?) {
+    private suspend fun loadCachedWeather(lat: Double, lon: Double, lang: String? = null) {
         val city = repository.getCityByLatLng(lat, lon)
         if (city?.cachedWeather != null) {
             try {
-                val weather = com.google.gson.Gson().fromJson(city.cachedWeather, com.example.tempestia.data.weather.model.WeatherResponse::class.java)
+                val weather = com.google.gson.Gson().fromJson(city.cachedWeather, WeatherResponse::class.java)
                 val cityName = repository.getPreciseLocationName(lat, lon, lang) ?: city.cityName
                 _weatherState.value = WeatherState.Success(weather, cityName)
-            } catch(e: Exception) {
+            } catch(_: Exception) {
                 _weatherState.value = WeatherState.Error("Offline data corrupted.")
             }
         } else {
@@ -70,18 +73,20 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
         }
     }
 
-    private suspend fun loadCachedWeather(lat: Double, lon: Double) {
-        val city = repository.getCityByLatLng(lat, lon)
-        if (city?.cachedWeather != null) {
-            try {
-                val weather = com.google.gson.Gson().fromJson(city.cachedWeather, WeatherResponse::class.java)
-                val cityName = repository.getPreciseLocationName(lat, lon) ?: city.cityName
-                _weatherState.value = WeatherState.Success(weather, cityName)
-            } catch(e: Exception) {
-                _weatherState.value = WeatherState.Error("Offline data corrupted.")
+    fun refreshWeather(isSwipeRefresh: Boolean = false) {
+        viewModelScope.launch {
+
+            if (!isSwipeRefresh) {
+                _weatherState.value = WeatherState.Loading
             }
-        } else {
-            _weatherState.value = WeatherState.Error("No internet connection. Please connect to view weather.")
+
+            val location = repository.locationFlow.firstOrNull()
+
+            if (location != null) {
+                getWeather(location.first, location.second, isSwipeRefresh)
+            } else if (!isSwipeRefresh) {
+                _weatherState.value = WeatherState.Error("No location set")
+            }
         }
     }
 }

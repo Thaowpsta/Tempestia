@@ -1,7 +1,7 @@
-package com.example.tempestia.data.alerts.dataSource.locale
+package com.example.tempestia.data.weather.dataSource.locale
 
 import android.content.Context
-import com.example.tempestia.data.alerts.model.Alert
+import com.example.tempestia.data.weather.model.Alert
 import com.example.tempestia.data.db.AppDatabase
 import kotlinx.coroutines.flow.Flow
 

@@ -1,4 +1,4 @@
-package com.example.tempestia.data.alerts.model
+package com.example.tempestia.data.weather.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -3,8 +3,8 @@ package com.example.tempestia.repository
 import android.content.Context
 import android.location.Geocoder
 import android.location.Location
-import com.example.tempestia.data.alerts.dataSource.locale.AlertsLocalDatasource
-import com.example.tempestia.data.alerts.model.Alert
+import com.example.tempestia.data.weather.dataSource.locale.AlertsLocalDatasource
+import com.example.tempestia.data.weather.model.Alert
 import com.example.tempestia.data.favorites.dataSource.local.FavoritesLocalDatasource
 import com.example.tempestia.data.favorites.model.FavoriteCity
 import com.example.tempestia.data.settings.dataSource.locale.LocationDataSource

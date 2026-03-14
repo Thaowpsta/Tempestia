@@ -6,8 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.example.tempestia.data.alerts.model.Alert
-import com.example.tempestia.data.alerts.dataSource.locale.AlertsDao
+import com.example.tempestia.data.weather.model.Alert
+import com.example.tempestia.data.weather.dataSource.locale.AlertsDao
 import com.example.tempestia.data.favorites.dataSource.local.FavoriteCityDao
 import com.example.tempestia.data.favorites.model.FavoriteCity
 
